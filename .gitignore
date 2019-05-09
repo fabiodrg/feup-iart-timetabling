@@ -2,3 +2,7 @@ examples
 \.vscode/
 bin/
 build/
+
+\.release_time
+
+main

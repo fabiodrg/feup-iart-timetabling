@@ -1,6 +1,6 @@
 #### PROJECT SETTINGS ####
 # The name of the executable to be created
-BIN_NAME := hello
+BIN_NAME := main
 # Compiler used
 CXX ?= g++
 # Extension of source files used in the project
