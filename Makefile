@@ -232,3 +232,8 @@ examples:
 	wget "http://sferics.idsia.ch/Files/ttcomp2002/IC_Problem/competition2.zip"
 	unzip competition2.zip -d examples
 	rm competition2.zip
+
+.PHONY: docs
+docs:
+	$(RM) -rf docs
+	doxygen Doxyfile
