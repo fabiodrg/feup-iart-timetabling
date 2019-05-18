@@ -1,4 +1,5 @@
 #include "main.h"
+#include "hill_climbing.h"
 #include <fstream>
 #include <iostream>
 
@@ -24,6 +25,9 @@ int main(int argc, char **argv)
     Instance a = importFile(inputFile);
 
     inputFile.close();
+
+    // testing
+    Timetable *tt = get_random_initial_state(a);
 }
 
 Instance importFile(fstream &f)

@@ -1,24 +1,19 @@
 #include "model.h"
 
-int Feature::getId()
-{
-    return this->id;
-}
-
 Feature::Feature(int i)
 {
     this->id = i;
+}
+
+int Feature::getId()
+{
+    return this->id;
 }
 
 bool Feature::operator<(const Feature &f) const
 {
     return this->id < f.id;
 }
-
-/**
- * @brief A room where events take place. A room has a size.
- * @param c The size of the room
- */
 
 int Room::getSize()
 {
@@ -36,10 +31,6 @@ Room::Room(int c, int i)
     this->id = i;
 }
 
-/**
- * @brief Get the number of features for this event
- * @return the number of features
- */
 int Room::getNumberOfFeatures()
 {
     return this->features.size();
@@ -50,10 +41,6 @@ set<Feature> Room::getFeatures()
     return this->features;
 }
 
-/**
- * @brief Adds a Feature to this room.
- * @param f The feature to add.
- */
 void Room::addFeature(Feature f)
 {
     features.insert(f);
@@ -84,11 +71,6 @@ Event::Event(int i)
     this->id = i;
 }
 
-/**
- * @brief Add an antedee to this event
- * @param s The Student (atendee) to add
- * @return void
- */
 void Event::addAtendee(Student s)
 {
     atendees.insert(s);
@@ -99,23 +81,20 @@ int Event::getId()
     return id;
 }
 
-/**
- * @brief Get the number of atendees for this event
- * @return the number of atendees
- */
 int Event::getNumberOfAtendees()
 {
     return atendees.size();
 }
 
-/**
- * @brief Get the number of features for this event
- * @return the number of features
- */
 int Event::getNumberOfFeatures()
 {
     return features.size();
 }
+
+set<Student> Event::getAttendes() {
+    return atendees;
+}
+
 
 /**
  * @brief Adds a Feature to this event.

@@ -1,9 +1,14 @@
 #ifndef MODULE_H
 #define MODULE_H
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
+
+#define TIMETABLE_NUMBER_DAYS 5
+#define TIMETABLE_SLOTS_PER_DAY 9
+
 using namespace std;
 
 class Feature
@@ -12,9 +17,42 @@ private:
     int id;
 
 public:
-    int getId();
+    /**
+     * @brief Construct a new Feature object
+     * 
+     * @param i 
+     */
     Feature(int i);
+
+    /**
+     * @brief Get the Id object
+     * 
+     * @return int 
+     */
+    int getId();
+
+    /**
+     * @brief 
+     * 
+     * @param f 
+     * @return true 
+     * @return false 
+     */
     bool operator<(const Feature &f) const;
+
+    /**
+     * @brief 
+     * 
+     * @param out 
+     * @param feature 
+     * @return ostream& 
+     */
+    friend ostream &operator<<(ostream &out, const Feature &feature)
+    {
+        out << feature.id;
+
+        return out;
+    }
 };
 
 /**
@@ -29,11 +67,27 @@ private:
     int id;
 
 public:
+    /**
+     * @brief Construct a new Room object
+     * 
+     * @param c 
+     * @param i 
+     */
+    Room(int c, int i);
+
+    /**
+     * @brief Get the Size object
+     * 
+     * @return int 
+     */
     int getSize();
 
+    /**
+     * @brief Get the Id object
+     * 
+     * @return int 
+     */
     int getId();
-
-    Room(int c, int i);
 
     /**
 	 * @brief Get the number of features for this event
@@ -41,6 +95,11 @@ public:
 	 */
     int getNumberOfFeatures();
 
+    /**
+     * @brief Get the Features object
+     * 
+     * @return set<Feature> 
+     */
     set<Feature> getFeatures();
 
     /**
@@ -49,7 +108,36 @@ public:
 	 */
     void addFeature(Feature f);
 
+    /**
+     * @brief 
+     * 
+     * @param f 
+     * @return true 
+     * @return false 
+     */
     bool operator<(const Room &f) const;
+
+    /**
+     * @brief 
+     * 
+     * @param out 
+     * @param room 
+     * @return ostream& 
+     */
+    friend ostream &operator<<(ostream &out, const Room &room)
+    {
+        out << "Room: " << room.id << endl;
+        out << setw(4) << " "
+            << "Capacity: " << room.size << endl;
+        out << setw(4) << " "
+            << "Features:";
+        for (Feature f : room.features) {
+            out << " " << f;
+        }
+        out << endl;
+
+        return out;
+    }
 };
 
 class Student
@@ -63,7 +151,12 @@ public:
     int getId();
 
     bool operator<(const Student &f) const;
-    // perhaps we'll need to store each student's timetable here...
+
+    friend ostream &operator<<(ostream &out, const Student &student)
+    {
+        out << student.id;
+        return out;
+    }
 };
 
 /**
@@ -101,6 +194,13 @@ public:
     int getNumberOfFeatures();
 
     /**
+     * @brief Get the Attendes object
+     * 
+     * @return set<Student> 
+     */
+    set<Student> getAttendes();
+
+    /**
 	 * @brief Adds a Feature to this event.
 	 * @param f The feature to add.
 	 */
@@ -109,6 +209,40 @@ public:
     bool isFeatureRequired(Feature feature);
 
     bool operator<(const Event &f) const;
+
+    friend ostream &operator<<(ostream &out, const Event &event)
+    {
+        out << "Event: " << event.id << endl;
+        out << setw(4) << " "
+            << "Required Features:";
+        for (Feature f : event.features) {
+            out << " " << f;
+        }
+        out << endl;
+        out << setw(4) << " "
+            << "Attendees:";
+        for (Student s : event.atendees) {
+            out << " " << s;
+        }
+        out << endl;
+
+        return out;
+    }
+};
+
+/**
+ * @brief an instance of the problem.
+ * Allows for running the same program for several instances.
+ * This variable holds all the problem state, and thus simplifies access to it.
+ */
+class Instance
+{
+public:
+    vector<Room> rooms;
+    vector<Event> events;
+    vector<Student> students;
+    vector<Feature> features;
+    int nEvents, nRooms, nFeatures, nStudents;
 };
 
 class TimeSlot
@@ -137,27 +271,49 @@ public:
      * @return false 
      */
     bool removeScheduledEvent(Room room);
+
+    /**
+     * @brief Get the Scheduled Events object
+     * 
+     * @return map<Room, Event> 
+     */
+    map<Room, Event> getScheduledEvents() const
+    {
+        return this->scheduled_events;
+    }
 };
 
 class Timetable
 {
 public:
-    TimeSlot timetable[5][9]; /** the 45 time slots organized by day */
+    TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
     Timetable();
+    /**
+     * @brief 
+     * 
+     * @param out 
+     * @param tt 
+     * @return ostream& 
+     */
+    friend ostream &operator<<(ostream &out, const Timetable &tt)
+    {
+        for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+            out << "############\n"
+                 << "Day " << i << endl
+                 << "############\n";
+            for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+                out << "Slot " << j << endl;
+                const TimeSlot slot = tt.timetable[i][j];
+                map<Room, Event> scheduled_events = slot.getScheduledEvents();
+                for (auto scheduled_events_it = scheduled_events.cbegin(); scheduled_events_it != scheduled_events.cend(); scheduled_events_it++) {
+                    out << scheduled_events_it->first << endl;
+                    out << scheduled_events_it->second << endl;
+                }
+            }
+        }
+
+        return out;
+    }
 };
 
-/**
- * @brief an instance of the problem.
- * Allows for running the same program for several instances.
- * This variable holds all the problem state, and thus simplifies access to it.
- */
-class Instance
-{
-public:
-    vector<Room> rooms;
-    vector<Event> events;
-    vector<Student> students;
-    vector<Feature> features;
-    int nEvents, nRooms, nFeatures, nStudents;
-};
 #endif
