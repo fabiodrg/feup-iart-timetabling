@@ -192,7 +192,7 @@ int Timetable::calculateScore(Instance &instance)
                 set<Student> event_attendees = event.getAttendes(); // get the attendees
                 for (Student s : event_attendees) {
                     if (student_ids.find(s.getId()) != student_ids.end()) {
-                        score += 100; // this student has multiple events on same time slot
+                        score += PENALTY_STUDENT_OVERLAPPED_EVENTS; // this student has multiple events on same time slot
                     } else {
                         student_ids.insert(s.getId());
                     }
@@ -202,7 +202,7 @@ int Timetable::calculateScore(Instance &instance)
                  * Rooms must have enough capacity for holding an event
                  */
                 if(room.getSize() < event.getNumberOfAtendees()) {
-                    score += 200;
+                    score += PENALTY_ROOM_OUT_OF_SPACE;
                 }
 
                 /**
@@ -212,7 +212,7 @@ int Timetable::calculateScore(Instance &instance)
                 set<Feature> room_features = room.getFeatures();
                 for(Feature f : event_required_features) {
                     if(!room.hasFeature(f)) {
-                        score += 200;
+                        score += PENALTY_ROOM_MISSING_FEATURE;
                     }
                 }
 
