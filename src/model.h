@@ -108,6 +108,7 @@ public:
 	 */
     void addFeature(Feature f);
 
+    bool hasFeature(Feature f);
     /**
      * @brief 
      * 
@@ -201,6 +202,13 @@ public:
     set<Student> getAttendes();
 
     /**
+     * @brief Get the Required Features object
+     * 
+     * @return set<Feature> 
+     */
+    set<Feature> getRequiredFeatures();
+    
+    /**
 	 * @brief Adds a Feature to this event.
 	 * @param f The feature to add.
 	 */
@@ -288,6 +296,7 @@ class Timetable
 public:
     TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
     Timetable();
+    int calculateScore(Instance &instance);
     /**
      * @brief 
      * 

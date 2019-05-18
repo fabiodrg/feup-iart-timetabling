@@ -28,6 +28,8 @@ int main(int argc, char **argv)
 
     // testing
     Timetable *tt = get_random_initial_state(a);
+    //cout << *tt;
+    cout << tt->calculateScore(a) << endl;
 }
 
 Instance importFile(fstream &f)

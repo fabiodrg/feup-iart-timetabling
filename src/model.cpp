@@ -46,6 +46,11 @@ void Room::addFeature(Feature f)
     features.insert(f);
 }
 
+bool Room::hasFeature(Feature f) {
+    set<Feature>::iterator it = this->features.find(f);
+    return !(it == this->features.end());
+}
+
 bool Room::operator<(const Room &f) const
 {
     return this->id < f.id;
@@ -91,10 +96,14 @@ int Event::getNumberOfFeatures()
     return features.size();
 }
 
-set<Student> Event::getAttendes() {
-    return atendees;
+set<Student> Event::getAttendes()
+{
+    return this->atendees;
 }
 
+set<Feature> Event::getRequiredFeatures() {
+    return this->features;
+}
 
 /**
  * @brief Adds a Feature to this event.
@@ -158,3 +167,61 @@ bool TimeSlot::removeScheduledEvent(Room room)
 }
 
 Timetable::Timetable(){};
+
+int Timetable::calculateScore(Instance &instance)
+{
+    int score = 0;
+
+    // no student attends more than one event at the same time
+    for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+        for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+            TimeSlot &slot = this->timetable[i][j];
+            map<Room, Event> scheduled_events = slot.getScheduledEvents();
+
+            set<int> student_ids; // students who have events on this time slot
+            for (auto scheduled_event_it = scheduled_events.begin(); scheduled_event_it != scheduled_events.end(); scheduled_event_it++) {
+                // get the room and event instances for more readable code
+                Room room = scheduled_event_it->first;
+                Event event = scheduled_event_it->second;
+                
+                /**
+                 * No student attends more than one event at the same time
+                 * For this slot, go through all scheduled events and take note of student identifiers
+                 * If the same student appears on multiple events, increase the score
+                 */
+                set<Student> event_attendees = event.getAttendes(); // get the attendees
+                for (Student s : event_attendees) {
+                    if (student_ids.find(s.getId()) != student_ids.end()) {
+                        score += 100; // this student has multiple events on same time slot
+                    } else {
+                        student_ids.insert(s.getId());
+                    }
+                }
+
+                /**
+                 * Rooms must have enough capacity for holding an event
+                 */
+                if(room.getSize() < event.getNumberOfAtendees()) {
+                    score += 200;
+                }
+
+                /**
+                 * The room has all required features for the event
+                 */
+                set<Feature> event_required_features = event.getRequiredFeatures();
+                set<Feature> room_features = room.getFeatures();
+                for(Feature f : event_required_features) {
+                    if(!room.hasFeature(f)) {
+                        score += 200;
+                    }
+                }
+
+                /**
+                 * only one event is in each room at any timeslot.
+                 * This constraint is relaxed because scheduled events are stored in a map like structure
+                 */
+            }
+        }
+    }
+    return score;
+}
