@@ -34,8 +34,8 @@ class Feature {
     Feature(int i) {
         this->id = i;
     }
-    bool operator<(const Feature& f) const {
-        return this->id < f.id;
+    bool operator<(const Feature& rhs) const {
+        return this->id < rhs.id;
     }
 };
 
@@ -79,8 +79,8 @@ class Room {
         features.insert(f);
     }
 
-    bool operator<(const Room& f) const {
-        return this->id < f.id;
+    bool operator<(const Room& rhs) const {
+        return this->id < rhs.id;
     }
 };
 
@@ -97,8 +97,8 @@ class Student {
         return this->id;
     }
 
-    bool operator<(const Student& f) const {
-        return this->id < f.id;
+    bool operator<(const Student& rhs) const {
+        return this->id < rhs.id;
     }
     // perhaps we'll need to store each student's timetable here...
 };
@@ -155,7 +155,7 @@ class Event {
         this->features.insert(f);
     }
 
-    bool operator<(const Event& f) const {
-        return this->id < f.id;
+    bool operator<(const Event& rhs) const {
+        return this->id < rhs.id;
     }
 };
