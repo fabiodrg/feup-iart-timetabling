@@ -11,7 +11,7 @@ void assert_equal(int expected, int result, string test)
     }
 }
 
-int test_score_calculation()
+void test_score_calculation()
 {
     Feature f1(1);
     Feature f2(2);
@@ -76,9 +76,4 @@ int test_score_calculation()
     tt.timetable[0][0] = ts3;
     assert_equal(PENALTY_ROOM_OUT_OF_SPACE + PENALTY_STUDENT_OVERLAPPED_EVENTS, tt.calculateScore(i1), "Room out of space & overlapped event");
     
-}
-
-int main()
-{
-    test_score_calculation();
 }

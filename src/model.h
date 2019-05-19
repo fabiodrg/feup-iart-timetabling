@@ -84,27 +84,27 @@ public:
      * 
      * @return int 
      */
-    int getSize();
+    int getSize() const;
 
     /**
      * @brief Get the Id object
      * 
      * @return int 
      */
-    int getId();
+    int getId() const;
 
     /**
 	 * @brief Get the number of features for this event
 	 * @return the number of features
 	 */
-    int getNumberOfFeatures();
+    int getNumberOfFeatures() const;
 
     /**
      * @brief Get the Features object
      * 
      * @return set<Feature> 
      */
-    set<Feature> getFeatures();
+    set<Feature> getFeatures() const;
 
     /**
 	 * @brief Adds a Feature to this room.
@@ -112,7 +112,7 @@ public:
 	 */
     void addFeature(Feature f);
 
-    bool hasFeature(Feature f);
+    bool hasFeature(Feature f) const;
     /**
      * @brief 
      * 
@@ -249,12 +249,30 @@ public:
  */
 class Instance
 {
+private:
+    /**
+     * @brief Comparator of rooms
+     * 
+     * @param a 
+     * @param b 
+     * @return true Room 'a' has less capacity than 'b'
+     */
+    static bool _roomsCmpCapacity(const Room &a, const Room &b);
+
 public:
     vector<Room> rooms;
     vector<Event> events;
     vector<Student> students;
     vector<Feature> features;
-    int nEvents, nRooms, nFeatures, nStudents;
+    int getNumRooms() const;
+    int getNumEvents() const;
+    int getNumStudents() const;
+    int getNumFeatures() const;
+    /**
+     * @brief Sorts the rooms vector ascendingly by capacity. First element has lowest capacity, last has largest capacity
+     * 
+     */
+    void sortRoomsByCapacity();
 };
 
 class TimeSlot
@@ -300,7 +318,7 @@ class Timetable
 public:
     TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
     Timetable();
-    int calculateScore(Instance &instance);
+    int calculateScore(const Instance &instance);
     /**
      * @brief 
      * 
@@ -312,8 +330,8 @@ public:
     {
         for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
             out << "############\n"
-                 << "Day " << i << endl
-                 << "############\n";
+                << "Day " << i << endl
+                << "############\n";
             for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
                 out << "Slot " << j << endl;
                 const TimeSlot slot = tt.timetable[i][j];

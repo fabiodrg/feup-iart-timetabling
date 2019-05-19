@@ -1,5 +1,5 @@
 #include "model.h"
-
+#include <algorithm>
 Feature::Feature(int i)
 {
     this->id = i;
@@ -15,12 +15,12 @@ bool Feature::operator<(const Feature &f) const
     return this->id < f.id;
 }
 
-int Room::getSize()
+int Room::getSize() const
 {
     return this->size;
 }
 
-int Room::getId()
+int Room::getId() const
 {
     return this->id;
 }
@@ -31,12 +31,12 @@ Room::Room(int c, int i)
     this->id = i;
 }
 
-int Room::getNumberOfFeatures()
+int Room::getNumberOfFeatures() const
 {
     return this->features.size();
 }
 
-set<Feature> Room::getFeatures()
+set<Feature> Room::getFeatures() const
 {
     return this->features;
 }
@@ -46,7 +46,8 @@ void Room::addFeature(Feature f)
     features.insert(f);
 }
 
-bool Room::hasFeature(Feature f) {
+bool Room::hasFeature(Feature f) const
+{
     set<Feature>::iterator it = this->features.find(f);
     return !(it == this->features.end());
 }
@@ -101,7 +102,8 @@ set<Student> Event::getAttendes()
     return this->atendees;
 }
 
-set<Feature> Event::getRequiredFeatures() {
+set<Feature> Event::getRequiredFeatures()
+{
     return this->features;
 }
 
@@ -123,6 +125,36 @@ bool Event::isFeatureRequired(Feature feature)
 bool Event::operator<(const Event &f) const
 {
     return this->id < f.id;
+}
+
+bool Instance::_roomsCmpCapacity(const Room &a, const Room &b)
+{
+    return a.getSize() < b.getSize();
+}
+
+int Instance::getNumRooms() const
+{
+    return this->rooms.size();
+}
+
+int Instance::getNumEvents() const
+{
+    return this->events.size();
+}
+
+int Instance::getNumStudents() const
+{
+    return this->students.size();
+}
+
+int Instance::getNumFeatures() const
+{
+    return this->features.size();
+}
+
+void Instance::sortRoomsByCapacity()
+{
+    sort(this->rooms.begin(), this->rooms.end(), Instance::_roomsCmpCapacity);
 }
 
 TimeSlot::TimeSlot()
@@ -168,7 +200,7 @@ bool TimeSlot::removeScheduledEvent(Room room)
 
 Timetable::Timetable(){};
 
-int Timetable::calculateScore(Instance &instance)
+int Timetable::calculateScore(const Instance &instance)
 {
     int score = 0;
 
@@ -201,7 +233,7 @@ int Timetable::calculateScore(Instance &instance)
                 /**
                  * Rooms must have enough capacity for holding an event
                  */
-                if(room.getSize() < event.getNumberOfAtendees()) {
+                if (room.getSize() < event.getNumberOfAtendees()) {
                     score += PENALTY_ROOM_OUT_OF_SPACE;
                 }
 
@@ -210,8 +242,8 @@ int Timetable::calculateScore(Instance &instance)
                  */
                 set<Feature> event_required_features = event.getRequiredFeatures();
                 set<Feature> room_features = room.getFeatures();
-                for(Feature f : event_required_features) {
-                    if(!room.hasFeature(f)) {
+                for (Feature f : event_required_features) {
+                    if (!room.hasFeature(f)) {
                         score += PENALTY_ROOM_MISSING_FEATURE;
                     }
                 }

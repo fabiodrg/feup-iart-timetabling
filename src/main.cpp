@@ -35,29 +35,30 @@ int main(int argc, char **argv)
 Instance importFile(fstream &f)
 {
     Instance a;
-    f >> a.nEvents >> a.nRooms >> a.nFeatures >> a.nStudents; //read first line
+    int nEvents, nRooms, nFeatures, nStudents;
+    f >> nEvents >> nRooms >> nFeatures >> nStudents; //read first line
 
-    cout << "Loaded " << a.nEvents << " events, " << a.nRooms << " rooms, " << a.nFeatures << " features and " << a.nStudents << " students. " << endl;
+    cout << "Loaded " << nEvents << " events, " << nRooms << " rooms, " << nFeatures << " features and " << nStudents << " students. " << endl;
 
-    for (int i = 0; i < a.nRooms; i++) {
+    for (int i = 0; i < nRooms; i++) {
         int size;
         f >> size;
         a.rooms.push_back(Room(size, i));
     }
 
-    for (int i = 0; i < a.nStudents; i++) {
+    for (int i = 0; i < nStudents; i++) {
         a.students.push_back(Student(i));
     }
 
-    for (int i = 0; i < a.nEvents; i++) {
+    for (int i = 0; i < nEvents; i++) {
         a.events.push_back(Event(i));
     }
 
-    for (int i = 0; i < a.nFeatures; i++) {
+    for (int i = 0; i < nFeatures; i++) {
         a.features.push_back(Feature(i));
     }
 
-    for (int i = 0; i < a.nRooms; i++) {
+    for (int i = 0; i < nRooms; i++) {
         cout << "Room " << i << " has " << a.rooms[i].getSize() << " seats." << endl;
     }
 
@@ -95,6 +96,9 @@ Instance importFile(fstream &f)
         }
         cout << "Event " << e->getId() << " has " << e->getNumberOfFeatures() << "  features and " << e->getNumberOfAtendees() << " atendees." << endl;
     }
+
+    // sort rooms by capacity (ascending)
+    a.sortRoomsByCapacity();
 
     return a;
 }
