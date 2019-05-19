@@ -101,5 +101,3 @@ Timetable *get_greedy_initial_state(const Instance &inst)
 
     return tt;
 }
-
-}
