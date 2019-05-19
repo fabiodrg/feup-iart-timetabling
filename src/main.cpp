@@ -4,7 +4,8 @@
 
 using namespace std;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     if (argc != 2) {
         cout << "usage: ./main <input-file>" << endl;
         return 1;
@@ -25,9 +26,10 @@ int main(int argc, char** argv) {
     inputFile.close();
 }
 
-Instance importFile(fstream& f) {
+Instance importFile(fstream &f)
+{
     Instance a;
-    f >> a.nEvents >> a.nRooms >> a.nFeatures >> a.nStudents;  //read first line
+    f >> a.nEvents >> a.nRooms >> a.nFeatures >> a.nStudents; //read first line
 
     cout << "Loaded " << a.nEvents << " events, " << a.nRooms << " rooms, " << a.nFeatures << " features and " << a.nStudents << " students. " << endl;
 
@@ -53,20 +55,19 @@ Instance importFile(fstream& f) {
         cout << "Room " << i << " has " << a.rooms[i].getSize() << " seats." << endl;
     }
 
-    for (size_t i = 0; i < a.events.size(); i++) {
-        Event* e = &a.events[i];
-        for (size_t j = 0; j < a.students.size(); j++) {
-            Student s = a.students[j];
+    for (size_t i = 0; i < a.students.size(); i++) {
+        Student s = a.students[i];
+        for (size_t j = 0; j < a.events.size(); j++) {
+            Event *e = &a.events[j];
             int toadd;
             f >> toadd;
             if (toadd)
                 e->addAtendee(s);
         }
-        //cout << "Event " << e->getId() << " has " << e->getNumberOfAtendees() << " atendees." << endl;
-        // printed bellow
     }
+
     for (size_t i = 0; i < a.rooms.size(); i++) {
-        Room* r = &a.rooms[i];
+        Room *r = &a.rooms[i];
         for (size_t j = 0; j < a.features.size(); j++) {
             Feature fe = a.features[j];
             int toadd;
@@ -76,8 +77,9 @@ Instance importFile(fstream& f) {
         }
         cout << "Room " << r->getId() << " has " << r->getNumberOfFeatures() << " features." << endl;
     }
+    
     for (size_t i = 0; i < a.events.size(); i++) {
-        Event* e = &a.events[i];
+        Event *e = &a.events[i];
         for (size_t j = 0; j < a.features.size(); j++) {
             Feature fe = a.features[j];
             int toadd;
