@@ -14,7 +14,7 @@ The compiler used is `g++` from GNU. The C++ version is 11.
 
 Makefile has instructions to generate documentation using **Doxygen**. Simply run `$ make docs`. All documentation is generated under `docs` folder.
 
-Ensure **Doxygen** is installed and that the executable `doxygen` is present at `PATH`.
+Ensure **Doxygen** and **Graphviz** are installed and that the both are present at `PATH`.
 
 ## Fetching problem input examples
 
