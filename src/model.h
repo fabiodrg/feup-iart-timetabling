@@ -1,5 +1,6 @@
 #ifndef MODULE_H
 #define MODULE_H
+
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -184,41 +185,41 @@ public:
 	 */
     void addAtendee(Student s);
 
-    int getId();
+    int getId() const;
 
     /**
 	 * @brief Get the number of atendees for this event
 	 * @return the number of atendees
 	 */
-    int getNumberOfAtendees();
+    int getNumberOfAtendees() const;
 
     /**
 	 * @brief Get the number of features for this event
 	 * @return the number of features
 	 */
-    int getNumberOfFeatures();
+    int getNumberOfFeatures() const;
 
     /**
      * @brief Get the Attendes object
      * 
      * @return set<Student> 
      */
-    set<Student> getAttendes();
+    set<Student> getAttendes() const;
 
     /**
      * @brief Get the Required Features object
      * 
      * @return set<Feature> 
      */
-    set<Feature> getRequiredFeatures();
-    
+    set<Feature> getRequiredFeatures() const;
+
     /**
 	 * @brief Adds a Feature to this event.
 	 * @param f The feature to add.
 	 */
     void addFeature(Feature f);
 
-    bool isFeatureRequired(Feature feature);
+    bool isFeatureRequired(Feature feature) const;
 
     bool operator<(const Event &f) const;
 

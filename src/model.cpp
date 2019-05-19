@@ -82,27 +82,27 @@ void Event::addAtendee(Student s)
     atendees.insert(s);
 }
 
-int Event::getId()
+int Event::getId() const
 {
     return id;
 }
 
-int Event::getNumberOfAtendees()
+int Event::getNumberOfAtendees() const
 {
     return atendees.size();
 }
 
-int Event::getNumberOfFeatures()
+int Event::getNumberOfFeatures() const
 {
     return features.size();
 }
 
-set<Student> Event::getAttendes()
+set<Student> Event::getAttendes() const
 {
     return this->atendees;
 }
 
-set<Feature> Event::getRequiredFeatures()
+set<Feature> Event::getRequiredFeatures() const
 {
     return this->features;
 }
@@ -116,7 +116,7 @@ void Event::addFeature(Feature f)
     this->features.insert(f);
 }
 
-bool Event::isFeatureRequired(Feature feature)
+bool Event::isFeatureRequired(Feature feature) const
 {
     set<Feature>::iterator it = this->features.find(feature.getId());
     return !(it == this->features.end());
@@ -203,7 +203,8 @@ Timetable::Timetable(){};
 int Timetable::calculateScore(const Instance &instance)
 {
     int score = 0;
-
+    int penalty_overlapped_events = 0, penalty_room_capacity = 0, penalty_room_features = 0;
+    
     // no student attends more than one event at the same time
     for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
         for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
@@ -215,7 +216,7 @@ int Timetable::calculateScore(const Instance &instance)
                 // get the room and event instances for more readable code
                 Room room = scheduled_event_it->first;
                 Event event = scheduled_event_it->second;
-                
+
                 /**
                  * No student attends more than one event at the same time
                  * For this slot, go through all scheduled events and take note of student identifiers
@@ -225,6 +226,7 @@ int Timetable::calculateScore(const Instance &instance)
                 for (Student s : event_attendees) {
                     if (student_ids.find(s.getId()) != student_ids.end()) {
                         score += PENALTY_STUDENT_OVERLAPPED_EVENTS; // this student has multiple events on same time slot
+                        penalty_overlapped_events++;
                     } else {
                         student_ids.insert(s.getId());
                     }
@@ -235,6 +237,7 @@ int Timetable::calculateScore(const Instance &instance)
                  */
                 if (room.getSize() < event.getNumberOfAtendees()) {
                     score += PENALTY_ROOM_OUT_OF_SPACE;
+                    penalty_room_capacity++;
                 }
 
                 /**
@@ -245,6 +248,7 @@ int Timetable::calculateScore(const Instance &instance)
                 for (Feature f : event_required_features) {
                     if (!room.hasFeature(f)) {
                         score += PENALTY_ROOM_MISSING_FEATURE;
+                        penalty_room_features++;
                     }
                 }
 
@@ -255,5 +259,10 @@ int Timetable::calculateScore(const Instance &instance)
             }
         }
     }
+
+    cout << "Score summary" << endl;
+    cout << "Overlapped events: " << penalty_overlapped_events << endl;
+    cout << "Room lack of capacity: " << penalty_room_capacity << endl;
+    cout << "Room missing features: " << penalty_room_features << endl;
     return score;
 }

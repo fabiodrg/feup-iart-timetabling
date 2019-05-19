@@ -1,8 +1,7 @@
-#include "main.h"
-#include "hill_climbing.h"
 #include <fstream>
 #include <iostream>
-
+#include "main.h"
+#include "hill_climbing.h"
 using namespace std;
 
 int main(int argc, char **argv)
@@ -23,12 +22,11 @@ int main(int argc, char **argv)
     // we got a file and could open it. Let's proceed.
 
     Instance a = importFile(inputFile);
-
     inputFile.close();
 
     // testing
-    Timetable *tt = get_random_initial_state(a);
-    //cout << *tt;
+    Timetable *tt = get_greedy_initial_state(a);
+
     cout << tt->calculateScore(a) << endl;
 }
 
