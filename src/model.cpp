@@ -171,7 +171,7 @@ TimeSlot::TimeSlot()
  */
 bool TimeSlot::addScheduledEvent(Room room, Event event)
 {
-    // TODO perhaps add more check constraints? Does the room has the required event features?
+    // TODO perhaps add more check constraints? Does the room have the required event features?
     // Does the event exist multiple times in this slot?
     pair<map<Room, Event>::iterator, bool> inserted_elem = this->scheduled_events.insert(pair<Room, Event>(room, event));
     return inserted_elem.second;
