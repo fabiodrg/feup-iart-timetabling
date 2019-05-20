@@ -167,7 +167,7 @@ public:
 
 /**
  * @brief An Event has atendees and requires certain features
- * 
+ *
  */
 class Event
 {
