@@ -62,6 +62,17 @@ Instance importFile(fstream &f)
         cout << "Room " << i << " has " << a.rooms[i].getSize() << " seats." << endl;
     }
 
+    for (size_t i = 0; i < a.students.size(); i++) {
+        Student s = a.students[i];
+        for (size_t j = 0; j < a.events.size(); j++) {
+            Event *e = &a.events[j];
+            int toadd;
+            f >> toadd;
+            if (toadd)
+                e->addAtendee(s);
+        }
+    }
+
   for (size_t i = 0; i < a.rooms.size(); i++) {
     Room *r = &a.rooms[i];
     for (size_t j = 0; j < a.features.size(); j++) {
