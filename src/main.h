@@ -9,7 +9,7 @@ using namespace std;
  * @param an fstream of the input file
  * @return the instance of the problem the passed file represents
  */
-Instance importFile(fstream &f);
+Instance importFile(fstream& f);
 
 /**
  * @brief Entry point. Input file name should be used as first argument.
@@ -17,4 +17,4 @@ Instance importFile(fstream &f);
  * @param argv
  */
 
-int main(int argc, char **argv);
+int main(int argc, char** argv);

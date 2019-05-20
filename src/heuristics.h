@@ -21,7 +21,7 @@ using namespace std;
  *
  * @return the score for this instance.
  */
-int getScore(Instance &i) {
-  // i.students.at(0).
-  return 0;
+int getScore(Instance& i) {
+	// i.students.at(0).
+	return 0;
 }
