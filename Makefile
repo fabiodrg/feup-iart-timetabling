@@ -233,6 +233,10 @@ examples:
 	unzip competition2.zip -d examples
 	rm competition2.zip
 
+.PHONY: format
+format:
+	clang-format -style=file src/* -i
+
 .PHONY: docs
 docs:
 	$(RM) -rf docs
