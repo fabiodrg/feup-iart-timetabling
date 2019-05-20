@@ -1,4 +1,5 @@
 #include "hill_climbing.h"
+#include "model.h"
 #include <stdlib.h>
 #include <time.h>
 

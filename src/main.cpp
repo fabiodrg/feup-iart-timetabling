@@ -28,6 +28,8 @@ int main(int argc, char **argv)
     Timetable *tt = get_greedy_initial_state(a);
 
     cout << tt->calculateScore(a) << endl;
+
+    delete(tt);
 }
 
 Instance importFile(fstream &f)
