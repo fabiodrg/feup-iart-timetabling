@@ -1,10 +1,10 @@
 #include "hill_climbing.h"
 #include "model.h"
+#include <queue>
 #include <stdlib.h>
 #include <time.h>
 
 Timetable* get_random_initial_state(const Instance& inst) {
-	srand(time(NULL));
 	Timetable* tt = new Timetable();
 
 	for (const Event& ev : inst.events) {
@@ -45,8 +45,7 @@ bool strict_schedule_event(Timetable* tt, const Event& ev, const Room& r) {
 }
 
 Timetable* get_greedy_initial_state(const Instance& inst) {
-	srand(time(NULL));
-	Timetable* tt = new Timetable();
+	Timetable* tt = new Timetable(inst);
 
 	// go through all events
 	for (const Event& ev : inst.events) {
@@ -96,8 +95,7 @@ Timetable* get_greedy_initial_state(const Instance& inst) {
 						continue; // failed, try next
 							  // room
 					else
-						is_event_scheduled =
-						    true; // success
+						is_event_scheduled = true; // success
 				} else {
 					is_event_scheduled = true; // success
 				}
@@ -111,4 +109,51 @@ Timetable* get_greedy_initial_state(const Instance& inst) {
 	}
 
 	return tt;
+}
+
+
+priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
+
+	uint8_t day = rand() % TIMETABLE_NUMBER_DAYS, timeslot = rand() % TIMETABLE_SLOTS_PER_DAY;
+	map<Room, Event*> scheduled_events = tt->timetable[day][timeslot].getScheduledEvents();
+	map<Room, Event*>::iterator scheduled_events_it = scheduled_events.begin();
+
+	while ((*scheduled_events_it).second == nullptr && scheduled_events_it != scheduled_events.end()) {
+		scheduled_events_it++;
+	}
+
+	TimetablePtrCmp cmp;
+	priority_queue_timetable_ptr neighbors(cmp);
+
+	if (scheduled_events_it == scheduled_events.end()) {
+		cout << "ERROR";
+		return neighbors;
+	}
+
+	int current_score = tt->calculateScore(inst);
+
+	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+		if (i == day) continue;
+
+		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+			if (j == timeslot) continue;
+
+			// clone the original table
+			Timetable* new_tt = new Timetable(*tt);
+			// swap the two events
+			map<Room, Event*>::iterator idk = new_tt->timetable[i][j].getScheduledEvents().begin();
+			tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it->first, scheduled_events_it->second);
+
+			new_tt->timetable[i][j].updateScheduledEvent(idk->first, scheduled_events_it->second);
+
+			// calculate the score of the new timetable
+			int new_score = new_tt->calculateScore(inst);
+			cout << new_tt->myScore << endl;
+			if (new_score < current_score) {
+				neighbors.push(new_tt);
+			}
+		}
+	}
+
+	return neighbors;
 }
