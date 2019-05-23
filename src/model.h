@@ -69,6 +69,7 @@ class Room {
 	int id;
 
       public:
+	Room();
 	/**
      * @brief Construct a new Room object
      * 
@@ -170,6 +171,7 @@ class Event {
 	int id;
 
       public:
+	Event();
 	Event(int i);
 	/**
 	 * @brief Add an antedee to this event
@@ -215,6 +217,8 @@ class Event {
 	bool isFeatureRequired(Feature feature) const;
 
 	bool operator<(const Event& f) const;
+
+	bool operator==(const Event& ev) const;
 
 	friend ostream& operator<<(ostream& out, const Event& event) {
 		out << "Event: " << event.id << endl;
@@ -269,7 +273,7 @@ class Instance {
 
 class TimeSlot {
       private:
-	map<Room, Event> scheduled_events;
+	map<Room, Event*> scheduled_events;
 
       public:
 	TimeSlot();
@@ -282,15 +286,25 @@ class TimeSlot {
      * @return true The event was scheduled successfully
      * @return false The room is already in use in this timeslot
      */
-	bool addScheduledEvent(Room room, Event event);
+	bool addScheduledEvent(const Room& room, const Event& event);
 
 	/**
-     * @brief Removes a scheduled event fromt this timeslot
-     * 
-     * @param room 
-     * @return true 
-     * @return false 
-     */
+	 * @brief Allocates an event to a room, wether the room is already allocated or not
+	 * 
+	 * @param room 
+	 * @param event 
+	 * @return true 
+	 * @return false 
+	 */
+	bool updateScheduledEvent(const Room& room, Event* event);
+
+	/**
+	 * @brief Removes a scheduled event from this timeslot, this is, makes the room used by the event free again
+	 * 
+	 * @param room 
+	 * @return true 
+	 * @return false 
+	 */
 	bool removeScheduledEvent(Room room);
 
 	/**
@@ -298,16 +312,29 @@ class TimeSlot {
      * 
      * @return map<Room, Event> 
      */
-	map<Room, Event> getScheduledEvents() const {
+	map<Room, Event*> getScheduledEvents() const {
 		return this->scheduled_events;
 	}
+
+	Event* getScheduledEvent(const Room& r) const;
+
+	bool isRoomAttributed(const Room& r);
+
+	bool addRoom(const Room& r);
+	bool addRoom(const Room& r, const Event& ev);
 };
 
 class Timetable {
       public:
 	TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
 	Timetable();
+	Timetable(const Instance& instance);
 	int calculateScore(const Instance& instance);
+	//vector<Event> getUnallocatedEvents(const Instance& instance);
+	int myScore = -1;
+
+	bool operator<(const Timetable& tt) const;
+	bool operator<(const Timetable* tt) const;
 	/**
      * @brief 
      * 
@@ -323,10 +350,12 @@ class Timetable {
 			for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
 				out << "Slot " << j << endl;
 				const TimeSlot slot = tt.timetable[i][j];
-				map<Room, Event> scheduled_events = slot.getScheduledEvents();
+				map<Room, Event*> scheduled_events = slot.getScheduledEvents();
 				for (auto scheduled_events_it = scheduled_events.cbegin(); scheduled_events_it != scheduled_events.cend(); scheduled_events_it++) {
-					out << scheduled_events_it->first << endl;
-					out << scheduled_events_it->second << endl;
+					if (scheduled_events_it->second != nullptr) {
+						out << scheduled_events_it->first << endl;
+						out << scheduled_events_it->second << endl;
+					}
 				}
 			}
 		}
@@ -334,5 +363,17 @@ class Timetable {
 		return out;
 	}
 };
+
+struct TimetablePtrCmp {
+	bool operator()(const Timetable* tt1, const Timetable* tt2) {
+ 		if (tt1->myScore == -1)
+			return false;
+		else if (tt2->myScore == -1)
+			return true;
+		else
+			return tt1->myScore > tt2->myScore;
+	}
+};
+
 
 #endif
