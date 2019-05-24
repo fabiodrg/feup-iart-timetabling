@@ -13,4 +13,5 @@ priority_queue_timetable_ptr get_neighbors(Timetable *tt, Instance &inst);
 
 Timetable* get_best_neighbor(Timetable *tt, Instance &inst);
 
+Timetable* get_random_neighbor(Timetable* tt, Instance& inst);
 #endif

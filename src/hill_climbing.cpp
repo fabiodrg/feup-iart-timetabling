@@ -177,7 +177,6 @@ Timetable* get_best_neighbor(Timetable* tt, Instance& inst) {
 	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
 
 	if (all_neighbors.empty()) {
-		cout << "Ups, no neighbors found" << endl;
 		return nullptr;
 	}
 
@@ -191,4 +190,34 @@ Timetable* get_best_neighbor(Timetable* tt, Instance& inst) {
 	}
 
 	return best;
+}
+
+Timetable* get_random_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
+
+	if (all_neighbors.empty()) {
+		return nullptr;
+	}
+
+	// calculate which neighbor is going to pick
+	int random_index = rand() % all_neighbors.size();
+
+	// remove all neighbors until reaches the desired neighbor
+	for(int i = 1; i < random_index; i++) {
+		delete all_neighbors.top();
+		all_neighbors.pop();
+	}
+
+	Timetable* desired = all_neighbors.top(); // desired neighbor
+	all_neighbors.pop();
+
+	// release all remaining allocated resources
+	while (!all_neighbors.empty()) {
+		delete all_neighbors.top();
+		all_neighbors.pop();
+	}
+
+	return desired;
+}
+
 }
