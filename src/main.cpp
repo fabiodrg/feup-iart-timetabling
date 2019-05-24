@@ -2,9 +2,12 @@
 #include "hill_climbing.h"
 #include <fstream>
 #include <iostream>
+
 using namespace std;
 
 int main(int argc, char** argv) {
+	srand(time(NULL));
+
 	if (argc != 2) {
 		cout << "usage: ./main <input-file>" << endl;
 		return 1;
@@ -29,6 +32,14 @@ int main(int argc, char** argv) {
 
 	cout << tt->calculateScore(a) << endl;
 
+	for(int i = 0; i < 1000; i++) {
+		Timetable *new_tt = get_best_neighbor(tt, a);
+		cout << "Melhor: " << new_tt->myScore << endl;
+		delete(tt);
+		tt = new_tt;
+	}
+	
+	
 	delete (tt);
 }
 

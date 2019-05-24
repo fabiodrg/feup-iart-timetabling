@@ -137,81 +137,93 @@ void Instance::sortRoomsByCapacity() {
 TimeSlot::TimeSlot() {
 }
 
-/**
- * @brief Adds a new pair <Room, Event> to this time slot
- * 
- * @param room The room where the event will occur
- * @param event The event itself
- * @return true The event was scheduled successfully
- * @return false The room is already in use in this timeslot
- */
-bool TimeSlot::addScheduledEvent(const Room& room, const Event& event) {
+bool TimeSlot::addScheduledEvent(Room* room, Event* event) {
 	try {
 		if (this->scheduled_events.at(room) == nullptr) {
-			this->scheduled_events.at(room) = new Event(event);
+			// the room is free, thus assign the event and return true
+			this->scheduled_events.at(room) = event;
 			return true;
 		}
 
-		return false;
+		return false; // room has an allocated event, don't do anything
 	} catch (const std::exception& e) {
+		// handle .at exceptions, in case the key is invalid
 		std::cerr << e.what() << '\n';
 		return false;
 	}
 }
 
-bool TimeSlot::updateScheduledEvent(const Room& room, Event* event) {
+Event* TimeSlot::updateScheduledEvent(Room* room, Event* event) {
 	try {
+		// save the current allocated event, if any
+		Event* old_ev = this->scheduled_events.at(room);
+		// assign the new event
 		this->scheduled_events.at(room) = event;
-		return true;
+		// return the old event
+		return old_ev;
 	} catch (const std::exception& e) {
+		// handle the .at method exception
 		std::cerr << e.what() << '\n';
+		return nullptr;
 	}
 }
 
-bool TimeSlot::removeScheduledEvent(Room room) {
+Event* TimeSlot::removeScheduledEvent(Room* room) {
 	try {
+		// save the current allocated event, if any
+		Event* old_ev = this->scheduled_events.at(room);
+		// assign null, making the room free
 		this->scheduled_events.at(room) = nullptr;
+		// return the old event
+		return old_ev;
 	} catch (const std::exception& e) {
+		// handle the .at method exception
 		std::cerr << e.what() << '\n';
-		return false;
+		return nullptr;
 	}
 }
 
-Event* TimeSlot::getScheduledEvent(const Room& r) const {
+Event* TimeSlot::getScheduledEvent(Room* room) const {
 	try {
-		return this->scheduled_events.at(r);
+		return this->scheduled_events.at(room);
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << '\n';
 		return nullptr;
 	}
 }
 
-bool TimeSlot::isRoomAttributed(const Room& r) {
-	return this->scheduled_events.find(r) != this->scheduled_events.end();
+map<Room*, Event*, RoomPtrCmp> TimeSlot::getScheduledEvents() const {
+	return this->scheduled_events;
 }
 
-bool TimeSlot::addRoom(const Room& r) {
-	return this->scheduled_events.insert(pair<Room, Event*>(r, nullptr)).second;
+// bool TimeSlot::isRoomAttributed(const Room& r) {
+// 	return this->scheduled_events.find(r) != this->scheduled_events.end();
+// }
+
+bool TimeSlot::addRoom(Room *r) {
+	return this->scheduled_events.insert(pair<Room*, Event*>(r, nullptr)).second;
 }
 
-bool TimeSlot::addRoom(const Room& r, const Event& ev) {
-	return this->scheduled_events.insert(pair<Room, Event*>(r, new Event(ev))).second;
+bool TimeSlot::addRoom(Room *r, Event *ev) {
+	return this->scheduled_events.insert(pair<Room*, Event*>(r, ev)).second;
 }
 
 Timetable::Timetable(){};
 
-Timetable::Timetable(const Instance& instance) {
+Timetable::Timetable(Instance& instance) {
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
-			for (const Room& r : instance.rooms) {
-				this->timetable[i][j].addRoom(r);
+			for (Room& r : instance.rooms) {
+				this->timetable[i][j].addRoom(&r);
 			}
 		}
 	}
 }
 
 int Timetable::calculateScore(const Instance& instance) {
+	// global score
 	int score = 0;
+	// counter for the different penalties
 	int penalty_overlapped_events = 0,
 	    penalty_room_capacity = 0,
 	    penalty_room_features = 0;
@@ -220,13 +232,13 @@ int Timetable::calculateScore(const Instance& instance) {
 	for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
 			TimeSlot& slot = this->timetable[i][j];
-			map<Room, Event*> scheduled_events = slot.getScheduledEvents();
+			map<Room*, Event*, RoomPtrCmp> scheduled_events = slot.getScheduledEvents();
 
 			set<int> student_ids; // students who have events on this time slot
 			for (auto scheduled_event_it = scheduled_events.begin(); scheduled_event_it != scheduled_events.end(); scheduled_event_it++) {
 				// get the room and event instances for more readable code
-				Room room = scheduled_event_it->first;
-				Event* event = scheduled_event_it->second;
+				Room *room = scheduled_event_it->first;
+				Event *event = scheduled_event_it->second;
 
 				if (event == nullptr) continue;
 				/**
@@ -247,7 +259,7 @@ int Timetable::calculateScore(const Instance& instance) {
 				/**
                  * Rooms must have enough capacity for holding an event
                  */
-				if (room.getSize() < event->getNumberOfAtendees()) {
+				if (room->getSize() < event->getNumberOfAtendees()) {
 					score += PENALTY_ROOM_OUT_OF_SPACE;
 					penalty_room_capacity++;
 				}
@@ -256,9 +268,9 @@ int Timetable::calculateScore(const Instance& instance) {
                  * The room has all required features for the event
                  */
 				set<Feature> event_required_features = event->getRequiredFeatures();
-				set<Feature> room_features = room.getFeatures();
+				set<Feature> room_features = room->getFeatures();
 				for (Feature f : event_required_features) {
-					if (!room.hasFeature(f)) {
+					if (!room->hasFeature(f)) {
 						score += PENALTY_ROOM_MISSING_FEATURE;
 						penalty_room_features++;
 					}
@@ -272,10 +284,10 @@ int Timetable::calculateScore(const Instance& instance) {
 		}
 	}
 
-	cout << "Score summary" << endl;
-	cout << "Overlapped events: " << penalty_overlapped_events << endl;
-	cout << "Room lack of capacity: " << penalty_room_capacity << endl;
-	cout << "Room missing features: " << penalty_room_features << endl;
+	//cout << "Score summary" << endl;
+	//cout << "Overlapped events: " << penalty_overlapped_events << endl;
+	//cout << "Room lack of capacity: " << penalty_room_capacity << endl;
+	//cout << "Room missing features: " << penalty_room_features << endl;
 
 	this->myScore = score;
 
