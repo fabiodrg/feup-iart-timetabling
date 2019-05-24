@@ -26,4 +26,15 @@ Timetable* get_random_neighbor(Timetable* tt, Instance& inst);
  * @return Timetable* The best solution found
  */
 Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
+
+/**
+ * @brief Implements Stochastic Hill Climbing
+ * 
+ * @param inst The parsed data
+ * @param generate_initial_state The initial solution generator to be used. 
+ * @see get_random_initial_state
+ * @see get_greedy_initial_state 
+ * @return Timetable* The best solution found
+ */
+Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
 #endif

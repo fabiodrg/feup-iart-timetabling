@@ -238,3 +238,22 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
 
 	return new_tt;
 }
+
+Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+
+	// while not stucked in a local maxima or the optimal solution is not found
+	while ((new_tt = get_random_neighbor(tt, inst)) != nullptr && tt->myScore != 0) {
+		cout << "Found enhanced solution: " << new_tt->myScore << endl;
+		delete (tt);
+		tt = new_tt;
+	}
+
+	return new_tt;
+}
