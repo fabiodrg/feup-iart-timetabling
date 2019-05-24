@@ -28,25 +28,9 @@ int main(int argc, char** argv) {
 	inputFile.close();
 
 	// testing
-	Timetable* tt = get_greedy_initial_state(a);
+	Timetable* tt = steepest_ascent_hill_climbing(a, get_greedy_initial_state);
 
-	cout << tt->calculateScore(a) << endl;
-
-	const int maximum_lost_attempts = 10; // maximum number of times for consecutive lack of improved solutions
-	int lost_attempts = 0;
-	for(int i = 0; i < 1000 && lost_attempts < maximum_lost_attempts; i++) {
-		Timetable *new_tt = get_best_neighbor(tt, a);
-		if(new_tt == nullptr) {
-			lost_attempts++;
-			continue;
-		} 
-		lost_attempts = 0;
-		cout << "Melhor: " << new_tt->myScore << endl;
-		delete(tt);
-		tt = new_tt;
-	}
-	
-	delete (tt);
+		delete (tt);
 }
 
 Instance importFile(fstream& f) {

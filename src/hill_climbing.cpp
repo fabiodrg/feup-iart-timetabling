@@ -203,7 +203,7 @@ Timetable* get_random_neighbor(Timetable* tt, Instance& inst) {
 	int random_index = rand() % all_neighbors.size();
 
 	// remove all neighbors until reaches the desired neighbor
-	for(int i = 1; i < random_index; i++) {
+	for (int i = 1; i < random_index; i++) {
 		delete all_neighbors.top();
 		all_neighbors.pop();
 	}
@@ -220,4 +220,21 @@ Timetable* get_random_neighbor(Timetable* tt, Instance& inst) {
 	return desired;
 }
 
+Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+
+	// while not stucked in a local maxima or the optimal solution is not found
+	while ((new_tt = get_best_neighbor(tt, inst)) != nullptr && tt->myScore != 0) {
+		cout << "Found enhanced solution: " << new_tt->myScore << endl;
+		delete (tt);
+		tt = new_tt;
+	}
+
+	return new_tt;
 }
