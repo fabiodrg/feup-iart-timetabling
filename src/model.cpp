@@ -208,8 +208,6 @@ bool TimeSlot::addRoom(Room *r, Event *ev) {
 	return this->scheduled_events.insert(pair<Room*, Event*>(r, ev)).second;
 }
 
-Timetable::Timetable(){};
-
 Timetable::Timetable(Instance& instance) {
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {

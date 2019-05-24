@@ -434,12 +434,6 @@ class TimeSlot {
 class Timetable {
       public:
 	TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
-	
-	/**
-	 * @brief Default timetable constructor
-	 * 
-	 */
-	Timetable();
 
 	/**
 	 * @brief Creates a new Timetable. Given the provided Instance, it adds all rooms to each timeslot, starting unassigned to any event
@@ -448,7 +442,6 @@ class Timetable {
 	 */
 	Timetable(Instance& instance);
 	int calculateScore(const Instance& instance);
-	//vector<Event> getUnallocatedEvents(const Instance& instance);
 	int myScore = -1;
 
 	bool operator<(const Timetable& tt) const;

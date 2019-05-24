@@ -5,7 +5,7 @@
 #include <time.h>
 
 Timetable* get_random_initial_state(Instance& inst) {
-	Timetable* tt = new Timetable();
+	Timetable* tt = new Timetable(inst);
 
 	for (Event& ev : inst.events) {
 		bool added = false;
@@ -112,25 +112,30 @@ Timetable* get_greedy_initial_state(Instance& inst) {
 
 
 priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
-
+	// generate a random day and slot
 	uint8_t day = rand() % TIMETABLE_NUMBER_DAYS, timeslot = rand() % TIMETABLE_SLOTS_PER_DAY;
-	map<Room*, Event*, RoomPtrCmp> scheduled_events = tt->timetable[day][timeslot].getScheduledEvents();
-	map<Room*, Event*>::iterator scheduled_events_it = scheduled_events.begin();
-
-	while ((*scheduled_events_it).second == nullptr && scheduled_events_it != scheduled_events.end()) {
-		scheduled_events_it++;
+	// get all scheduled events in that timeslot
+	map<Room*, Event*, RoomPtrCmp> scheduled_events_A = tt->timetable[day][timeslot].getScheduledEvents();
+	// pick one of those events // TODO
+	map<Room*, Event*>::iterator scheduled_events_it_A = scheduled_events_A.begin();
+	while ((*scheduled_events_it_A).second == nullptr && scheduled_events_it_A != scheduled_events_A.end()) {
+		scheduled_events_it_A++;
 	}
 
+	// create the priority queue for storing the new generated neighbors
 	TimetablePtrCmp cmp;
 	priority_queue_timetable_ptr neighbors(cmp);
 
-	if (scheduled_events_it == scheduled_events.end()) {
+	// if no events were found give up
+	if (scheduled_events_it_A == scheduled_events_A.end()) {
 		cout << "ERROR";
 		return neighbors;
 	}
 
+	// auxiliar for the current timetable score
 	int current_score = tt->calculateScore(inst);
 
+	// go through all timeslots and attempt to permute event A with another event in a different timeslot
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		if (i == day) continue;
 
@@ -139,16 +144,19 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 
 			// clone the original table
 			Timetable* new_tt = new Timetable(*tt);
-			//cout << *new_tt;
-			// swap the two events
-			map<Room*, Event*, RoomPtrCmp>::iterator idk = new_tt->timetable[i][j].getScheduledEvents().begin();
-			tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it->first, scheduled_events_it->second);
 
-			new_tt->timetable[i][j].updateScheduledEvent(idk->first, scheduled_events_it->second);
+			// get the scheduled events for the timeslot timetable[i][j]
+			map<Room*, Event*, RoomPtrCmp> scheduled_events_B = new_tt->timetable[i][j].getScheduledEvents();
+			map<Room*, Event*, RoomPtrCmp>::iterator scheduled_events_it_B = scheduled_events_B.begin();
+
+			// make the swap
+			new_tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it_A->first, scheduled_events_it_B->second);
+			new_tt->timetable[i][j].updateScheduledEvent(scheduled_events_it_B->first, scheduled_events_it_A->second);
 
 			// calculate the score of the new timetable
 			int new_score = new_tt->calculateScore(inst);
-			//cout << new_tt->myScore << endl;
+			
+			// if the generated neighbor has a better score, then it's an admissible candidate
 			if (new_score < current_score) {
 				neighbors.push(new_tt);
 			}
