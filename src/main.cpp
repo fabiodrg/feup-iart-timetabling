@@ -32,13 +32,19 @@ int main(int argc, char** argv) {
 
 	cout << tt->calculateScore(a) << endl;
 
-	for(int i = 0; i < 1000; i++) {
+	const int maximum_lost_attempts = 10; // maximum number of times for consecutive lack of improved solutions
+	int lost_attempts = 0;
+	for(int i = 0; i < 1000 && lost_attempts < maximum_lost_attempts; i++) {
 		Timetable *new_tt = get_best_neighbor(tt, a);
+		if(new_tt == nullptr) {
+			lost_attempts++;
+			continue;
+		} 
+		lost_attempts = 0;
 		cout << "Melhor: " << new_tt->myScore << endl;
 		delete(tt);
 		tt = new_tt;
 	}
-	
 	
 	delete (tt);
 }

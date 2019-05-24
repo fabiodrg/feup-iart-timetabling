@@ -161,6 +161,11 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 Timetable* get_best_neighbor(Timetable *tt, Instance &inst) {
 	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
 	
+	if(all_neighbors.empty()) {
+		cout << "Ups, no neighbors found" << endl;
+		return nullptr;
+	}
+	
 	Timetable *best = all_neighbors.top(); // top of the queue
 	all_neighbors.pop();
 
