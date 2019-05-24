@@ -1,5 +1,6 @@
 #include "main.h"
 #include "hill_climbing.h"
+#include "genetic.h"
 #include <fstream>
 #include <iostream>
 
@@ -29,6 +30,11 @@ int main(int argc, char** argv) {
 
 	// testing
 	Timetable* tt = stochastic_hill_climbing(a, get_greedy_initial_state);
+
+  Timetable* t2 = goGenetic(&a, 100, 500);
+
+  cout << *t2;
+
 
 	delete (tt);
 }
