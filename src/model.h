@@ -348,7 +348,7 @@ class Instance {
 };
 
 struct RoomPtrCmp {
-	bool operator()(Room *r1, Room *r2) const {
+	bool operator()(Room* r1, Room* r2) const {
 		return r1->getId() < r2->getId();
 	}
 };
@@ -371,7 +371,7 @@ class TimeSlot {
      * @return true The event was scheduled successfully
      * @return false The room is already in use in this timeslot, no changes were done
      */
-	bool addScheduledEvent(Room *room, Event *event);
+	bool addScheduledEvent(Room* room, Event* event);
 
 	/**
 	 * @brief Allocates an event to a room, wether the room is already allocated or not.
@@ -382,7 +382,7 @@ class TimeSlot {
 	 * @return Event* The old event allocated to the said room. 
 	 * @return NULL If no event was previosly allocated, i.e., the room is free, NULL is returned
 	 */
-	Event* updateScheduledEvent(Room *room, Event *event);
+	Event* updateScheduledEvent(Room* room, Event* event);
 
 	/**
 	 * @brief Removes a scheduled event from this timeslot, this is, makes the room used by the event free again
@@ -391,7 +391,7 @@ class TimeSlot {
 	 * @return Event* Returns the old assigned event to the room
 	 * @return NULL The room is already free, no events are assigned to it
 	 */
-	Event* removeScheduledEvent(Room *room);
+	Event* removeScheduledEvent(Room* room);
 
 	/**
 	 * @brief Return the assigned event to the room
@@ -399,8 +399,8 @@ class TimeSlot {
 	 * @param room 
 	 * @return Event* 
 	 */
-	Event* getScheduledEvent(Room *room) const;
-	
+	Event* getScheduledEvent(Room* room) const;
+
 	/**
      * @brief Returns all scheduled Events in this timeslot
      * 
@@ -408,7 +408,6 @@ class TimeSlot {
      */
 	map<Room*, Event*, RoomPtrCmp> getScheduledEvents() const;
 
-	
 	// bool isRoomAttributed(const Room& r);
 
 	/**
@@ -418,7 +417,7 @@ class TimeSlot {
 	 * @return true 
 	 * @return false 
 	 */
-	bool addRoom(Room *r);
+	bool addRoom(Room* r);
 
 	/**
 	 * @brief Adds a new room and assigns it to an event in this timeslot
@@ -428,13 +427,13 @@ class TimeSlot {
 	 * @return true 
 	 * @return false 
 	 */
-	bool addRoom(Room *r, Event *ev);
+	bool addRoom(Room* r, Event* ev);
 };
 
 class Timetable {
       public:
 	TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
-	vector<Event*> unallocated_events; /** Events that failed to be allocated on the first random timetable */
+	vector<Event*> unallocated_events;				    /** Events that failed to be allocated on the first random timetable */
 	/**
 	 * @brief Creates a new Timetable. Given the provided Instance, it adds all rooms to each timeslot, starting unassigned to any event
 	 * 

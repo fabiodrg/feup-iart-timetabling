@@ -200,11 +200,11 @@ map<Room*, Event*, RoomPtrCmp> TimeSlot::getScheduledEvents() const {
 // 	return this->scheduled_events.find(r) != this->scheduled_events.end();
 // }
 
-bool TimeSlot::addRoom(Room *r) {
+bool TimeSlot::addRoom(Room* r) {
 	return this->scheduled_events.insert(pair<Room*, Event*>(r, nullptr)).second;
 }
 
-bool TimeSlot::addRoom(Room *r, Event *ev) {
+bool TimeSlot::addRoom(Room* r, Event* ev) {
 	return this->scheduled_events.insert(pair<Room*, Event*>(r, ev)).second;
 }
 
@@ -235,8 +235,8 @@ int Timetable::calculateScore(const Instance& instance) {
 			set<int> student_ids; // students who have events on this time slot
 			for (auto scheduled_event_it = scheduled_events.begin(); scheduled_event_it != scheduled_events.end(); scheduled_event_it++) {
 				// get the room and event instances for more readable code
-				Room *room = scheduled_event_it->first;
-				Event *event = scheduled_event_it->second;
+				Room* room = scheduled_event_it->first;
+				Event* event = scheduled_event_it->second;
 
 				if (event == nullptr) continue;
 				/**
