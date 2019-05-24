@@ -29,7 +29,7 @@ Timetable* get_random_initial_state(Instance& inst) {
  * @param r The room that satisfies the event requirements
  * @return Returns true if the event was scheduled successfully. False otherwise
  */
-bool strict_schedule_event(Timetable* tt, Event *ev, Room *r) {
+bool strict_schedule_event(Timetable* tt, Event* ev, Room* r) {
 	bool event_added = false;
 	for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS && !event_added; i++) {
 		for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY && !event_added;
@@ -104,12 +104,12 @@ Timetable* get_greedy_initial_state(Instance& inst) {
 		if (!is_event_scheduled) {
 			cout << "Failed to schedule event: \n"
 			     << ev << endl;
+			tt->unallocated_events.push_back(&ev);
 		}
 	}
 
 	return tt;
 }
-
 
 priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 	// generate a random day and slot
@@ -142,23 +142,30 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
 			if (j == timeslot) continue;
 
-			// clone the original table
-			Timetable* new_tt = new Timetable(*tt);
-
 			// get the scheduled events for the timeslot timetable[i][j]
-			map<Room*, Event*, RoomPtrCmp> scheduled_events_B = new_tt->timetable[i][j].getScheduledEvents();
+			map<Room*, Event*, RoomPtrCmp> scheduled_events_B = tt->timetable[i][j].getScheduledEvents();
 			map<Room*, Event*, RoomPtrCmp>::iterator scheduled_events_it_B = scheduled_events_B.begin();
 
-			// make the swap
-			new_tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it_A->first, scheduled_events_it_B->second);
-			new_tt->timetable[i][j].updateScheduledEvent(scheduled_events_it_B->first, scheduled_events_it_A->second);
+			// go through all events in this timeslot and make swaps
+			while (scheduled_events_it_B != scheduled_events_B.end()) {
+				// clone the original table
+				Timetable* new_tt = new Timetable(*tt);
 
-			// calculate the score of the new timetable
-			int new_score = new_tt->calculateScore(inst);
-			
-			// if the generated neighbor has a better score, then it's an admissible candidate
-			if (new_score < current_score) {
-				neighbors.push(new_tt);
+				// make the swap
+				new_tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it_A->first, scheduled_events_it_B->second);
+				new_tt->timetable[i][j].updateScheduledEvent(scheduled_events_it_B->first, scheduled_events_it_A->second);
+
+				// calculate the score of the new timetable
+				int new_score = new_tt->calculateScore(inst);
+
+				// if the generated neighbor has a better score, then it's an admissible candidate
+				if (new_score < current_score) {
+					neighbors.push(new_tt);
+				} else {
+					delete new_tt;
+				}
+
+				scheduled_events_it_B++;
 			}
 		}
 	}
@@ -166,19 +173,19 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 	return neighbors;
 }
 
-Timetable* get_best_neighbor(Timetable *tt, Instance &inst) {
+Timetable* get_best_neighbor(Timetable* tt, Instance& inst) {
 	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
-	
-	if(all_neighbors.empty()) {
+
+	if (all_neighbors.empty()) {
 		cout << "Ups, no neighbors found" << endl;
 		return nullptr;
 	}
-	
-	Timetable *best = all_neighbors.top(); // top of the queue
+
+	Timetable* best = all_neighbors.top(); // top of the queue
 	all_neighbors.pop();
 
 	// release all allocated resources
-	while(!all_neighbors.empty()) {
+	while (!all_neighbors.empty()) {
 		delete all_neighbors.top();
 		all_neighbors.pop();
 	}
