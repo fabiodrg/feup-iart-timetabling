@@ -440,8 +440,10 @@ class Timetable {
 	 * @param instance 
 	 */
 	Timetable(Instance& instance);
-	int calculateScore(const Instance& instance);
+	int calculateScore();
 	int myScore = -1;
+
+	unsigned int getNumberOfEvents();
 
 	bool operator<(const Timetable& tt) const;
 	/**

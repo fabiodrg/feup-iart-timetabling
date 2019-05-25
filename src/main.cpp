@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 
 	Timetable* t2 = goGenetic(&a, 100, 500);
 
-	cout << "Genetic Score: " << t2->calculateScore(a) << endl;
+	cout << "Genetic Score: " << t2->calculateScore() << endl;
 
 	delete (t2);
 }

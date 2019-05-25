@@ -133,7 +133,7 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 	}
 
 	// auxiliar for the current timetable score
-	int current_score = tt->calculateScore(inst);
+	int current_score = tt->calculateScore();
 
 	// go through all timeslots and attempt to permute event A with another event in a different timeslot
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
@@ -156,7 +156,7 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 				new_tt->timetable[i][j].updateScheduledEvent(scheduled_events_it_B->first, scheduled_events_it_A->second);
 
 				// calculate the score of the new timetable
-				int new_score = new_tt->calculateScore(inst);
+				int new_score = new_tt->calculateScore();
 
 				// if the generated neighbor has a better score, then it's an admissible candidate
 				if (new_score < current_score) {
@@ -225,7 +225,7 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
 	Timetable* tt = generate_initial_state(inst);
 
 	// calculate the score for this random solution
-	cout << tt->calculateScore(inst) << endl;
+	cout << tt->calculateScore() << endl;
 
 	Timetable* new_tt;
 
@@ -244,7 +244,7 @@ Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initia
 	Timetable* tt = generate_initial_state(inst);
 
 	// calculate the score for this random solution
-	cout << tt->calculateScore(inst) << endl;
+	cout << tt->calculateScore() << endl;
 
 	Timetable* new_tt;
 

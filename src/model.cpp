@@ -218,7 +218,19 @@ Timetable::Timetable(Instance& instance) {
 	}
 }
 
-int Timetable::calculateScore(const Instance& instance) {
+unsigned int Timetable::getNumberOfEvents() {
+
+	unsigned int sum = 0;
+	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+			//sum += this->timetable[i][j].getScheduledEvents().size();
+		}
+	}
+
+	return sum;
+}
+
+int Timetable::calculateScore() {
 	// global score
 	int score = 0;
 	// counter for the different penalties

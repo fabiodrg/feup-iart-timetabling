@@ -9,19 +9,35 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 
 	for (uint32_t gen = 0; gen < max_generations; gen++) {
 	}
+	vector<Timetable*> s = selection(inst, population);
+
+
+	Timetable* child = crossover(inst, s[0], s[1]);
+	cout << "Father events: "<< s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
+	cout << "Mother events: "<< s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
+	cout << "Child events: "<< child->getNumberOfEvents() << "	score: " << child->calculateScore() << endl;
+
 	return selection(inst, population).at(0);
 }
 
+/**
+ * 
+ * 
+ */
 Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
+	// cout << "Father events: "<< father->getNumberOfEvents() << endl;
+	// cout << "Mother events: "<< mother->getNumberOfEvents() << endl;
+
 	Timetable child(*inst);
 
+	return &child;
 	uint8_t crossPoint = rand() % (TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY);
 	// loop to add father to child
 	for (uint8_t point = 0; point < crossPoint; point++) {
-		child.timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS] = father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS];
+		//child.timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS] = father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS];
 	}
 
-	vector<Event*> remainderEvents;
+	vector<Event*> repeatedEvents;
 	// Loop Mother Time Slots
 	for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
 		TimeSlot timeSlotToAdd = mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS];
@@ -30,7 +46,7 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 			bool eventFound = false;
 			// Loop Child Time Slots
 			for (uint8_t point2 = 0; point2 < crossPoint; point2++) {
-				child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS];
+				//child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS];
 				// Loop Child Events
 				for (pair<Room*, Event*> p2 : child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
 					if (p2.second == p.second) {
@@ -41,11 +57,30 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 			if (eventFound == false) {
 				child.timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].addScheduledEvent(p.first, p.second);
 			} else {
-				remainderEvents.push_back(p.second);
+				repeatedEvents.push_back(p.second);
 			}
 		}
-		// go through all events
-		for (Event* ev : remainderEvents) {
+
+		// find remaining events 
+		set<Event*> remainingEvents;
+		for (uint8_t point = 0; point < crossPoint; point++) {
+			for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+				remainingEvents.insert(p.second);
+			}
+		}
+
+		for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
+			for (pair<Room*, Event*> p : mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+				set<Event*>::iterator it = remainingEvents.find(p.second);
+				if(it != remainingEvents.end()){
+					// event found in mother. remove.
+					remainingEvents.erase(it);
+				}
+			}
+		}
+
+		// go through all remainig events and try to timetable them
+		for (Event* ev : remainingEvents) {
 			bool is_event_scheduled = false;
 
 			// go through all existing rooms
@@ -98,20 +133,21 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 				}
 			}
 
-			if (!is_event_scheduled) {
+			/*if (!is_event_scheduled) {
 				cout << "Failed to schedule event: \n"
 				     << ev << endl;
 				child.unallocated_events.push_back(ev);
-			}
+			}*/
 		}
 	}
+	return &child;
 }
 
 vector<Timetable*> selection(Instance* inst, std::vector<Timetable*> pop) {
 	vector<Timetable*> fathers;
 	int minScore;
-	int minScore1 = pop.at(0)->calculateScore(*inst);
-	int minScore2 = pop.at(1)->calculateScore(*inst);
+	int minScore1 = pop.at(0)->calculateScore();
+	int minScore2 = pop.at(1)->calculateScore();
 	if (minScore1 < minScore2) {
 		fathers.push_back(pop.at(0));
 		fathers.push_back(pop.at(1));
@@ -122,7 +158,7 @@ vector<Timetable*> selection(Instance* inst, std::vector<Timetable*> pop) {
 		minScore = minScore2;
 	}
 	for (Timetable* ind : pop) {
-		int score = ind->calculateScore(*inst);
+		int score = ind->calculateScore();
 		if (minScore > score) {
 			minScore = score;
 			fathers.insert(fathers.begin() + 1, fathers.at(0));
