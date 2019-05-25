@@ -281,7 +281,7 @@ Timetable* first_choice_hill_climbing(Instance& inst, Timetable* (*generate_init
 	Timetable* tt = generate_initial_state(inst);
 
 	// calculate the score for this random solution
-	cout << tt->calculateScore(inst) << endl;
+	cout << tt->calculateScore() << endl;
 
 	Timetable* new_tt;
 	int max_successive_attempts = 0;
