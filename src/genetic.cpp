@@ -1,4 +1,6 @@
 #include "genetic.h"
+#include "hill_climbing.h"
+
 
 Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_generations) {
 
@@ -28,9 +30,9 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 	// cout << "Father events: "<< father->getNumberOfEvents() << endl;
 	// cout << "Mother events: "<< mother->getNumberOfEvents() << endl;
 
-	Timetable child(*inst);
+	Timetable* child = new Timetable(*inst);
 
-	return &child;
+	//return child;
 	uint8_t crossPoint = rand() % (TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY);
 	// loop to add father to child
 	for (uint8_t point = 0; point < crossPoint; point++) {
@@ -48,14 +50,14 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 			for (uint8_t point2 = 0; point2 < crossPoint; point2++) {
 				//child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS];
 				// Loop Child Events
-				for (pair<Room*, Event*> p2 : child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+				for (pair<Room*, Event*> p2 : child->timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
 					if (p2.second == p.second) {
 						eventFound = true;
 					}
 				}
 			}
 			if (eventFound == false) {
-				child.timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].addScheduledEvent(p.first, p.second);
+				child->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].addScheduledEvent(p.first, p.second);
 			} else {
 				repeatedEvents.push_back(p.second);
 			}
@@ -112,7 +114,7 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 						    timeslot = rand() %
 							       TIMETABLE_SLOTS_PER_DAY;
 						is_added =
-						    child.timetable[day][timeslot]
+						    child->timetable[day][timeslot]
 							.addScheduledEvent(&r, ev);
 						attempts++;
 					} while (!is_added &&
@@ -123,7 +125,7 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 				 * event, try brute force
 				 */
 					if (!is_added) {
-						if (!strict_schedule_event(&child, ev, &r))
+						if (!strict_schedule_event(child, ev, &r))
 							continue; // failed, try next room
 						else
 							is_event_scheduled = true; // success
@@ -140,7 +142,7 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 			}*/
 		}
 	}
-	return &child;
+	return child;
 }
 
 vector<Timetable*> selection(Instance* inst, std::vector<Timetable*> pop) {
