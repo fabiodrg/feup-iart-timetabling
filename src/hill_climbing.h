@@ -37,4 +37,7 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
  * @return Timetable* The best solution found
  */
 Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
+
+bool strict_schedule_event(Timetable* tt, Event* ev, Room* r); 
+
 #endif
