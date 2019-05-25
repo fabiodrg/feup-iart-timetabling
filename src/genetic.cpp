@@ -30,7 +30,6 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 		}
 		s = selection(population, 0, 20);
 	}
-
 	return selection(population, 0, 1).at(0);
 }
 
