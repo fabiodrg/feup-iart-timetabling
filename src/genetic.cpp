@@ -25,8 +25,8 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 			cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
 			cout << "Child events: " << child->getNumberOfEvents() << "	score: " << cScore << endl;
 			population[cScore] = child;
-		} catch (exception* e) {
-			cout << e->what();
+		} catch (exception e) {
+			//cout << e->what();
 		}
 		s = selection(population, 0, 20);
 	}
