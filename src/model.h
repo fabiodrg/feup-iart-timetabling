@@ -408,7 +408,19 @@ class TimeSlot {
      */
 	map<Room*, Event*, RoomPtrCmp> getScheduledEvents() const;
 
-	// bool isRoomAttributed(const Room& r);
+	/**
+	 * @brief For this timeslot, return all rooms that are free, i.e., without allocated events
+	 * 
+	 * @return vector<Room*> 
+	 */
+	vector<Room*> getFreeRooms() const;
+
+	/**
+	 * @brief For this timeslot, return all events scheduled and assigned to some room
+	 * 
+	 * @return vector<Event*> 
+	 */
+	vector<Event*> getAllocatedEvents() const;
 
 	/**
 	 * @brief Adds an unassigned room to this timeslot

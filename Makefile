@@ -10,11 +10,11 @@ SRC_PATH = src
 # Space-separated pkg-config libraries used by this project
 LIBS =
 # General compiler flags
-COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g -O3
+COMPILE_FLAGS = -std=c++11 -Wall -Wextra
 # Additional release-specific flags
 RCOMPILE_FLAGS = -D NDEBUG
 # Additional debug-specific flags
-DCOMPILE_FLAGS = -D DEBUG
+DCOMPILE_FLAGS = -g -D DEBUG
 # Add additional include paths
 INCLUDES = -I $(SRC_PATH)
 # General linker settings
@@ -241,3 +241,6 @@ format:
 docs:
 	$(RM) -rf docs
 	doxygen Doxyfile
+
+testing:
+	g++ test/test.cpp src/hill_climbing.cpp src/model.cpp

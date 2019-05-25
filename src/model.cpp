@@ -196,9 +196,27 @@ map<Room*, Event*, RoomPtrCmp> TimeSlot::getScheduledEvents() const {
 	return this->scheduled_events;
 }
 
-// bool TimeSlot::isRoomAttributed(const Room& r) {
-// 	return this->scheduled_events.find(r) != this->scheduled_events.end();
-// }
+vector<Room*> TimeSlot::getFreeRooms() const {
+	vector<Room*> free_rooms;
+
+	for (pair<Room*, Event*> p : this->scheduled_events) {
+		if (p.second == nullptr)
+			free_rooms.push_back(p.first);
+	}
+
+	return free_rooms;
+}
+
+vector<Event*> TimeSlot::getAllocatedEvents() const {
+	vector<Event*> allocated_events;
+
+	for (pair<Room*, Event*> p : this->scheduled_events) {
+		if (p.second != nullptr)
+			allocated_events.push_back(p.second);
+	}
+
+	return allocated_events;
+}
 
 bool TimeSlot::addRoom(Room* r) {
 	return this->scheduled_events.insert(pair<Room*, Event*>(r, nullptr)).second;
@@ -303,29 +321,6 @@ int Timetable::calculateScore() {
 
 	return score;
 }
-
-// vector<Event> Timetable::getUnallocatedEvents(const Instance& instance) {
-// 	vector<Event> unallocated_events;
-
-// 	for (const Event& ev : instance.events) {
-// 		bool is_event_scheduled = false;
-// 		for (int i = 0; i < TIMETABLE_NUMBER_DAYS && !is_event_scheduled; i++) {
-// 			for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY && !is_event_scheduled; j++) {
-// 				for (const pair<Room, Event*>& scheduled_event : this->timetable[i][j].getScheduledEvents()) {
-// 					if (*scheduled_event.second == ev) {
-// 						is_event_scheduled = true;
-// 					}
-// 				}
-// 			}
-// 		}
-
-// 		if (!is_event_scheduled) {
-// 			unallocated_events.push_back(ev);
-// 		}
-// 	}
-
-// 	return unallocated_events;
-// }
 
 bool Timetable::operator<(const Timetable& tt) const {
 	// if one of the timetables hasn't any pre-calculated score
