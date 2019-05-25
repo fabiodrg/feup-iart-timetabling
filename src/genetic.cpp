@@ -13,7 +13,7 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 	vector<Timetable*> s = selection(population, 10, 5);
 
 	Timetable* child;
-  int window_size = 20;
+  int window_size = 50;
   forward_list<int> tempWindow(window_size);
   int a = 5;
 	for (unsigned short i = 0; i < max_generations; i++) {
@@ -41,7 +41,7 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
      else
       a=5; 
 		} catch (exception& e) {
-			cout << e.what();
+      cout << e.what() << endl;
 		}
 		s = selection(population, 0, a);
 	}
