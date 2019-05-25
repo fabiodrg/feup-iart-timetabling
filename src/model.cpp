@@ -1,5 +1,6 @@
 #include "model.h"
 #include <algorithm>
+
 Feature::Feature(int i) {
 	this->id = i;
 }
@@ -58,6 +59,8 @@ bool Student::operator<(const Student& f) const {
 	return this->id < f.id;
 }
 
+Event::Event(){};
+
 Event::Event(int i) {
 	this->id = i;
 }
@@ -103,6 +106,10 @@ bool Event::operator<(const Event& f) const {
 	return this->id < f.id;
 }
 
+bool Event::operator==(const Event& ev) const {
+	return this->id == ev.id;
+}
+
 bool Instance::_roomsCmpCapacity(const Room& a, const Room& b) {
 	return a.getSize() < b.getSize();
 }
@@ -130,65 +137,132 @@ void Instance::sortRoomsByCapacity() {
 TimeSlot::TimeSlot() {
 }
 
-/**
- * @brief Adds a new pair <Room, Event> to this time slot
- * 
- * @param room The room where the event will occur
- * @param event The event itself
- * @return true The event was scheduled successfully
- * @return false The room is already in use in this timeslot
- */
-bool TimeSlot::addScheduledEvent(Room room, Event event) {
-	// TODO perhaps add more check constraints? Does the room have the required event features?
-	// Does the event exist multiple times in this slot?
-	pair<map<Room, Event>::iterator, bool> inserted_elem = this->scheduled_events.insert(pair<Room, Event>(room, event));
-	return inserted_elem.second;
-}
+bool TimeSlot::addScheduledEvent(Room* room, Event* event) {
+	try {
+		if (this->scheduled_events.at(room) == nullptr) {
+			// the room is free, thus assign the event and return true
+			this->scheduled_events.at(room) = event;
+			return true;
+		}
 
-/**
- * @brief Removes a scheduled event fromt this timeslot
- * 
- * @param room 
- * @return true 
- * @return false 
- */
-bool TimeSlot::removeScheduledEvent(Room room) {
-	map<Room, Event>::iterator it;
-	it = this->scheduled_events.find(room);
-	if (it != this->scheduled_events.end()) {
-		// element exists
-		this->scheduled_events.erase(it);
-		return true;
-	} else {
-		// element couldn't be found
+		return false; // room has an allocated event, don't do anything
+	} catch (const std::exception& e) {
+		// handle .at exceptions, in case the key is invalid
+		std::cerr << e.what() << '\n';
 		return false;
 	}
 }
 
-Timetable::Timetable(){};
+Event* TimeSlot::updateScheduledEvent(Room* room, Event* event) {
+	try {
+		// save the current allocated event, if any
+		Event* old_ev = this->scheduled_events.at(room);
+		// assign the new event
+		this->scheduled_events.at(room) = event;
+		// return the old event
+		return old_ev;
+	} catch (const std::exception& e) {
+		// handle the .at method exception
+		std::cerr << e.what() << '\n';
+		return nullptr;
+	}
+}
+
+Event* TimeSlot::removeScheduledEvent(Room* room) {
+	try {
+		// save the current allocated event, if any
+		Event* old_ev = this->scheduled_events.at(room);
+		// assign null, making the room free
+		this->scheduled_events.at(room) = nullptr;
+		// return the old event
+		return old_ev;
+	} catch (const std::exception& e) {
+		// handle the .at method exception
+		std::cerr << e.what() << '\n';
+		return nullptr;
+	}
+}
+
+Event* TimeSlot::getScheduledEvent(Room* room) const {
+	try {
+		return this->scheduled_events.at(room);
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << '\n';
+		return nullptr;
+	}
+}
+
+map<Room*, Event*, RoomPtrCmp> TimeSlot::getScheduledEvents() const {
+	return this->scheduled_events;
+}
+
+vector<Room*> TimeSlot::getFreeRooms() const {
+	vector<Room*> free_rooms;
+
+	for (pair<Room*, Event*> p : this->scheduled_events) {
+		if (p.second == nullptr)
+			free_rooms.push_back(p.first);
+	}
+
+	return free_rooms;
+}
+
+vector<Event*> TimeSlot::getAllocatedEvents() const {
+	vector<Event*> allocated_events;
+
+	for (pair<Room*, Event*> p : this->scheduled_events) {
+		if (p.second != nullptr)
+			allocated_events.push_back(p.second);
+	}
+
+	return allocated_events;
+}
+
+bool TimeSlot::addRoom(Room* r) {
+	return this->scheduled_events.insert(pair<Room*, Event*>(r, nullptr)).second;
+}
+
+bool TimeSlot::addRoom(Room* r, Event* ev) {
+	return this->scheduled_events.insert(pair<Room*, Event*>(r, ev)).second;
+}
+
+Timetable::Timetable(Instance& instance) {
+	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+			for (Room& r : instance.rooms) {
+				this->timetable[i][j].addRoom(&r);
+			}
+		}
+	}
+}
 
 int Timetable::calculateScore(const Instance& instance) {
+	// global score
 	int score = 0;
-	int penalty_overlapped_events = 0, penalty_room_capacity = 0, penalty_room_features = 0;
+	// counter for the different penalties
+	int penalty_overlapped_events = 0,
+	    penalty_room_capacity = 0,
+	    penalty_room_features = 0;
 
 	// no student attends more than one event at the same time
 	for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
 			TimeSlot& slot = this->timetable[i][j];
-			map<Room, Event> scheduled_events = slot.getScheduledEvents();
+			map<Room*, Event*, RoomPtrCmp> scheduled_events = slot.getScheduledEvents();
 
 			set<int> student_ids; // students who have events on this time slot
 			for (auto scheduled_event_it = scheduled_events.begin(); scheduled_event_it != scheduled_events.end(); scheduled_event_it++) {
 				// get the room and event instances for more readable code
-				Room room = scheduled_event_it->first;
-				Event event = scheduled_event_it->second;
+				Room* room = scheduled_event_it->first;
+				Event* event = scheduled_event_it->second;
 
+				if (event == nullptr) continue;
 				/**
                  * No student attends more than one event at the same time
                  * For this slot, go through all scheduled events and take note of student identifiers
                  * If the same student appears on multiple events, increase the score
                  */
-				set<Student> event_attendees = event.getAttendes(); // get the attendees
+				set<Student> event_attendees = event->getAttendes(); // get the attendees
 				for (Student s : event_attendees) {
 					if (student_ids.find(s.getId()) != student_ids.end()) {
 						score += PENALTY_STUDENT_OVERLAPPED_EVENTS; // this student has multiple events on same time slot
@@ -201,7 +275,7 @@ int Timetable::calculateScore(const Instance& instance) {
 				/**
                  * Rooms must have enough capacity for holding an event
                  */
-				if (room.getSize() < event.getNumberOfAtendees()) {
+				if (room->getSize() < event->getNumberOfAtendees()) {
 					score += PENALTY_ROOM_OUT_OF_SPACE;
 					penalty_room_capacity++;
 				}
@@ -209,10 +283,10 @@ int Timetable::calculateScore(const Instance& instance) {
 				/**
                  * The room has all required features for the event
                  */
-				set<Feature> event_required_features = event.getRequiredFeatures();
-				set<Feature> room_features = room.getFeatures();
+				set<Feature> event_required_features = event->getRequiredFeatures();
+				set<Feature> room_features = room->getFeatures();
 				for (Feature f : event_required_features) {
-					if (!room.hasFeature(f)) {
+					if (!room->hasFeature(f)) {
 						score += PENALTY_ROOM_MISSING_FEATURE;
 						penalty_room_features++;
 					}
@@ -226,9 +300,24 @@ int Timetable::calculateScore(const Instance& instance) {
 		}
 	}
 
-	cout << "Score summary" << endl;
-	cout << "Overlapped events: " << penalty_overlapped_events << endl;
-	cout << "Room lack of capacity: " << penalty_room_capacity << endl;
-	cout << "Room missing features: " << penalty_room_features << endl;
+	//cout << "Score summary" << endl;
+	//cout << "Overlapped events: " << penalty_overlapped_events << endl;
+	//cout << "Room lack of capacity: " << penalty_room_capacity << endl;
+	//cout << "Room missing features: " << penalty_room_features << endl;
+
+	this->myScore = score;
+
 	return score;
+}
+
+bool Timetable::operator<(const Timetable& tt) const {
+	// if one of the timetables hasn't any pre-calculated score
+	// assume the other has less than, i.e., comes first
+	// if both have pre-calculated scores, perform integer comparasion
+	if (this->myScore == -1)
+		return true;
+	else if (tt.myScore == -1)
+		return false;
+	else
+		return this->myScore < tt.myScore;
 }

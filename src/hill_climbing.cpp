@@ -1,59 +1,36 @@
 #include "hill_climbing.h"
 #include "model.h"
+#include <queue>
 #include <stdlib.h>
 #include <time.h>
 
-Timetable* get_random_initial_state(const Instance& inst) {
-	srand(time(NULL));
-	Timetable* tt = new Timetable();
+Timetable* get_random_initial_state(Instance& inst) {
+	Timetable* tt = new Timetable(inst);
 
-	for (const Event& ev : inst.events) {
+	for (Event& ev : inst.events) {
 		bool added = false;
 		do {
 			uint32_t room_index = rand() % inst.getNumRooms();
-			const Room& r = inst.rooms.at(room_index);
+			Room& r = inst.rooms.at(room_index);
 			uint8_t day = rand() % 5, timeslot = rand() % 9;
-			added = tt->timetable[day][timeslot].addScheduledEvent(r, ev);
+			added = tt->timetable[day][timeslot].addScheduledEvent(&r, &ev);
 		} while (!added);
 	}
 
 	return tt;
 }
 
-/**
- * @brief Loops through all timetable slots and attempts to scheduled the pair
- * (event, room)
- *
- * @param tt The timetable being generated
- * @param ev The event to be scheduled
- * @param r The room that satisfies the event requirements
- * @return Returns true if the event was scheduled successfully. False otherwise
- */
-bool strict_schedule_event(Timetable* tt, const Event& ev, const Room& r) {
-	bool event_added = false;
-	for (size_t i = 0; i < TIMETABLE_NUMBER_DAYS && !event_added; i++) {
-		for (size_t j = 0; j < TIMETABLE_SLOTS_PER_DAY && !event_added;
-		     j++) {
-			if (tt->timetable[i][j].addScheduledEvent(r, ev)) {
-				event_added = true;
-				break;
-			}
-		}
-	}
-
-	return event_added;
-}
-
-Timetable* get_greedy_initial_state(const Instance& inst) {
-	srand(time(NULL));
-	Timetable* tt = new Timetable();
+Timetable* get_greedy_initial_state(Instance& inst) {
+	Timetable* tt = new Timetable(inst);
+	queue<Event*> unallocated_events;
 
 	// go through all events
-	for (const Event& ev : inst.events) {
+	for (Event& ev : inst.events) {
 		bool is_event_scheduled = false;
 
 		// go through all existing rooms
-		for (const Room& r : inst.rooms) {
+		for (size_t i = 0; i < inst.rooms.size() && !is_event_scheduled; i++) {
+			Room& r = inst.rooms.at(i);
 
 			// check if room has the required capacity
 			if (r.getSize() < ev.getNumberOfAtendees())
@@ -69,44 +46,255 @@ Timetable* get_greedy_initial_state(const Instance& inst) {
 			}
 
 			if (room_has_features) {
-				// Found the room to host the event
+				// Found a candidate room to host the event
 				// Try to pick a timetable spot randomly for the
 				// event
 				int attempts = 0;
-				bool is_added = false;
 				const int maximum_attempts = 10;
+
 				do {
 					int day =
 						rand() % TIMETABLE_NUMBER_DAYS,
 					    timeslot = rand() %
 						       TIMETABLE_SLOTS_PER_DAY;
-					is_added =
-					    tt->timetable[day][timeslot]
-						.addScheduledEvent(r, ev);
-					attempts++;
-				} while (!is_added &&
-					 attempts < maximum_attempts);
 
-				/**
-				 * If failed to randomly add the scheduled
-				 * event, try brute force
-				 */
-				if (!is_added) {
-					if (!strict_schedule_event(tt, ev, r))
-						continue; // failed, try next
-							  // room
-					else
-						is_event_scheduled =
-						    true; // success
-				} else {
-					is_event_scheduled = true; // success
-				}
+					is_event_scheduled = tt->timetable[day][timeslot].addScheduledEvent(&r, &ev);
+
+					attempts++;
+				} while (!is_event_scheduled && attempts < maximum_attempts);
 			}
 		}
 
+		// if the event failed to be scheduled, add it to the queue
 		if (!is_event_scheduled) {
-			cout << "Failed to schedule event: \n"
-			     << ev << endl;
+			unallocated_events.push(&ev);
+		}
+	}
+
+	// attempt to schedule all unscheduled events, without caring of hard constraints
+	// go through all timeslots and respective free rooms
+	cout << "Attempting to schedule " << unallocated_events.size() << " events using brute-force" << endl;
+
+	for (int i = 0; i < TIMETABLE_NUMBER_DAYS && !unallocated_events.empty(); i++) {
+		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY && !unallocated_events.empty(); j++) {
+			TimeSlot& slot = tt->timetable[i][j];
+			// get free rooms for this timeslot
+			vector<Room*> free_rooms = slot.getFreeRooms();
+
+			// for each free room, assign one of the unscheduled events
+			for (Room* r : free_rooms) {
+				if (unallocated_events.empty()) break;
+				// pick the first unscheduled event
+				Event* ev = unallocated_events.front();
+				// assign the event to the free room
+				slot.addScheduledEvent(r, ev);
+				// removes the event from the queue
+				unallocated_events.pop();
+			}
+		}
+	}
+
+	if (unallocated_events.size()) {
+		cout << "WARNING: Failed to allocate " << unallocated_events.size() << "events\n";
+	}
+
+	return tt;
+}
+
+priority_queue_timetable_ptr _get_neighbors(Timetable* tt, Instance& inst, bool first_best = false) {
+	// generate a random day and slot
+	uint8_t day = rand() % TIMETABLE_NUMBER_DAYS, timeslot = rand() % TIMETABLE_SLOTS_PER_DAY;
+	// get all scheduled events in that timeslot
+	map<Room*, Event*, RoomPtrCmp> scheduled_events_A = tt->timetable[day][timeslot].getScheduledEvents();
+	// pick one of those events // TODO
+	map<Room*, Event*>::iterator scheduled_events_it_A = scheduled_events_A.begin();
+	while ((*scheduled_events_it_A).second == nullptr && scheduled_events_it_A != scheduled_events_A.end()) {
+		scheduled_events_it_A++;
+	}
+
+	// create the priority queue for storing the new generated neighbors
+	TimetablePtrCmp cmp;
+	priority_queue_timetable_ptr neighbors(cmp);
+
+	// if no events were found give up
+	if (scheduled_events_it_A == scheduled_events_A.end()) {
+		return neighbors;
+	}
+
+	// auxiliar for the current timetable score
+	int current_score = tt->calculateScore(inst);
+
+	// go through all timeslots and attempt to permute event A with another event in a different timeslot
+	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
+		if (i == day) continue;
+
+		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
+			if (j == timeslot) continue;
+
+			// get the scheduled events for the timeslot timetable[i][j]
+			map<Room*, Event*, RoomPtrCmp> scheduled_events_B = tt->timetable[i][j].getScheduledEvents();
+			map<Room*, Event*, RoomPtrCmp>::iterator scheduled_events_it_B = scheduled_events_B.begin();
+
+			// go through all events in this timeslot and make swaps
+			while (scheduled_events_it_B != scheduled_events_B.end()) {
+				// clone the original table
+				Timetable* new_tt = new Timetable(*tt);
+
+				// make the swap
+				new_tt->timetable[day][timeslot].updateScheduledEvent(scheduled_events_it_A->first, scheduled_events_it_B->second);
+				new_tt->timetable[i][j].updateScheduledEvent(scheduled_events_it_B->first, scheduled_events_it_A->second);
+
+				// calculate the score of the new timetable
+				int new_score = new_tt->calculateScore(inst);
+
+				// if the generated neighbor has a better score, then it's an admissible candidate
+				if (new_score < current_score) {
+					neighbors.push(new_tt);
+
+					// if is a first-best search, then return immediately
+					if (first_best) return neighbors;
+				} else {
+					delete new_tt;
+				}
+
+				scheduled_events_it_B++;
+			}
+		}
+	}
+
+	return neighbors;
+}
+
+Timetable* _get_best_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst);
+
+	if (all_neighbors.empty()) {
+		return nullptr;
+	}
+
+	Timetable* best = all_neighbors.top(); // top of the queue
+	all_neighbors.pop();
+
+	// release all allocated resources
+	while (!all_neighbors.empty()) {
+		delete all_neighbors.top();
+		all_neighbors.pop();
+	}
+
+	return best;
+}
+
+Timetable* _get_random_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst);
+
+	if (all_neighbors.empty()) {
+		return nullptr;
+	}
+
+	// calculate which neighbor is going to pick
+	int random_index = rand() % all_neighbors.size();
+
+	// remove all neighbors until reaches the desired neighbor
+	for (int i = 1; i < random_index; i++) {
+		delete all_neighbors.top();
+		all_neighbors.pop();
+	}
+
+	Timetable* desired = all_neighbors.top(); // desired neighbor
+	all_neighbors.pop();
+
+	// release all remaining allocated resources
+	while (!all_neighbors.empty()) {
+		delete all_neighbors.top();
+		all_neighbors.pop();
+	}
+
+	return desired;
+}
+
+Timetable* _get_first_best_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst, true);
+
+	if (all_neighbors.empty()) {
+		return nullptr;
+	}
+
+	Timetable* first = all_neighbors.top(); // top of the queue
+	all_neighbors.pop();
+
+	return first;
+}
+
+Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
+	// while not stucked in a local maxima or the optimal solution is not found
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = _get_best_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
+		}
+	}
+
+	return tt;
+}
+
+Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
+	// while not stucked in a local maxima or the optimal solution is not found
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = _get_random_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
+		}
+	}
+
+	return tt;
+}
+
+Timetable* first_choice_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
+	// while not stucked in a local maxima or the optimal solution is not found
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = _get_first_best_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
 		}
 	}
 

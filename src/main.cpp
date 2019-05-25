@@ -2,9 +2,12 @@
 #include "hill_climbing.h"
 #include <fstream>
 #include <iostream>
+
 using namespace std;
 
 int main(int argc, char** argv) {
+	srand(time(NULL));
+
 	if (argc != 2) {
 		cout << "usage: ./main <input-file>" << endl;
 		return 1;
@@ -25,10 +28,8 @@ int main(int argc, char** argv) {
 	inputFile.close();
 
 	// testing
-	Timetable* tt = get_greedy_initial_state(a);
-
-	cout << tt->calculateScore(a) << endl;
-
+	Timetable* tt = first_choice_hill_climbing(a, get_greedy_initial_state);
+	cout << *tt;
 	delete (tt);
 }
 
