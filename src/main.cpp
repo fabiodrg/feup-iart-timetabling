@@ -1,4 +1,5 @@
 #include "main.h"
+#include "genetic.h"
 #include "hill_climbing.h"
 #include <fstream>
 #include <iostream>
@@ -28,9 +29,18 @@ int main(int argc, char** argv) {
 	inputFile.close();
 
 	// testing
-	Timetable* tt = first_choice_hill_climbing(a, get_greedy_initial_state);
-	cout << *tt;
-	delete (tt);
+
+
+	// //Timetable* tt = stochastic_hill_climbing(a, get_greedy_initial_state);
+
+	// Timetable* t2 = goGenetic(&a, 100, 5000);
+
+	// cout << "Genetic Score: " << t2->calculateScore() << endl;
+
+	// delete (t2);
+	// Timetable* tt = first_choice_hill_climbing(a, get_greedy_initial_state);
+	// cout << *tt;
+	// delete (tt);
 }
 
 Instance importFile(fstream& f) {

@@ -446,16 +446,17 @@ class Timetable {
       public:
 	TimeSlot timetable[TIMETABLE_NUMBER_DAYS][TIMETABLE_SLOTS_PER_DAY]; /** the 45 time slots organized by day */
 
+	bool operator<(const Timetable& tt) const;
 	/**
 	 * @brief Creates a new Timetable. Given the provided Instance, it adds all rooms to each timeslot, starting unassigned to any event
 	 * 
 	 * @param instance 
 	 */
 	Timetable(Instance& instance);
-	int calculateScore(const Instance& instance);
+	int calculateScore();
 	int myScore = -1;
 
-	bool operator<(const Timetable& tt) const;
+	unsigned int getNumberOfEvents();
 	/**
      * @brief 
      * 

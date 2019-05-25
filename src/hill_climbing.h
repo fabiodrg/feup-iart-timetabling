@@ -74,4 +74,7 @@ Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initia
  */
 Timetable* first_choice_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
 
+
+bool strict_schedule_event(Timetable* tt, Event* ev, Room* r);
+
 #endif
