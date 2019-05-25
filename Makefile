@@ -241,3 +241,6 @@ format:
 docs:
 	$(RM) -rf docs
 	doxygen Doxyfile
+
+testing:
+	g++ test/test.cpp src/hill_climbing.cpp src/model.cpp
