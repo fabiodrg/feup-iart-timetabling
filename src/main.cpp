@@ -2,6 +2,7 @@
 #include "genetic.h"
 #include "hill_climbing.h"
 #include "menu.h"
+#include "simulated_annealing.h"
 #include <fstream>
 #include <iostream>
 
@@ -16,6 +17,12 @@ const void runGenetic(Instance* a) {
 const void runHillClimbing(Instance* a) {
 	Timetable* tt = first_choice_hill_climbing(*a, get_greedy_initial_state);
 	cout << *tt;
+	delete (tt);
+}
+
+const void runSimulatedAnnealing(Instance* a) {
+	Timetable* tt = simulated_annealing(*a, get_greedy_initial_state, {20000, 100});
+	//cout << *tt;
 	delete (tt);
 }
 
@@ -41,10 +48,11 @@ int main(int argc, char** argv) {
 	Instance a = importFile(inputFile);
 	inputFile.close();
 
-  Menu menu("Timetabling", NULL, NULL, 0);
+	Menu menu("Timetabling", NULL, NULL, 0);
 
 	menu.addOption("Genetic", 'g', runGenetic, &a);
 	menu.addOption("Hill Climbing", 'h', runHillClimbing, &a);
+	menu.addOption("Simulated Annealing", 'a', runSimulatedAnnealing, &a);
 
 	while (1) {
 		menu.print();
