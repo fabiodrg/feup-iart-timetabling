@@ -236,6 +236,7 @@ Timetable::Timetable(Instance& instance) {
 	}
 }
 
+
 unsigned int Timetable::getNumberOfEvents() {
 
 	unsigned int sum = 0;
@@ -247,6 +248,7 @@ unsigned int Timetable::getNumberOfEvents() {
 
 	return sum;
 }
+
 
 int Timetable::calculateScore() {
 	// global score
