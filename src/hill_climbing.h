@@ -37,12 +37,6 @@ Timetable* get_random_initial_state(Instance& inst);
  */
 Timetable* get_greedy_initial_state(Instance& inst);
 
-priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst);
-
-Timetable* get_best_neighbor(Timetable* tt, Instance& inst);
-
-Timetable* get_random_neighbor(Timetable* tt, Instance& inst);
-
 /**
  * @brief Implements Steepest Ascent Hill Climbing
  * 
@@ -70,5 +64,14 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
  * @return Timetable* The best solution found
  */
 Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
+
+/**
+ * @brief 
+ * 
+ * @param inst 
+ * @param generate_initial_state 
+ * @return Timetable* 
+ */
+Timetable* first_choice_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&));
 
 #endif

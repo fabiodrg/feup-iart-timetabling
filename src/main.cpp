@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	inputFile.close();
 
 	// testing
-	Timetable* tt = steepest_ascent_hill_climbing(a, get_greedy_initial_state);
+	Timetable* tt = first_choice_hill_climbing(a, get_greedy_initial_state);
 	cout << *tt;
 	delete (tt);
 }

@@ -101,7 +101,7 @@ Timetable* get_greedy_initial_state(Instance& inst) {
 	return tt;
 }
 
-priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
+priority_queue_timetable_ptr _get_neighbors(Timetable* tt, Instance& inst, bool first_best = false) {
 	// generate a random day and slot
 	uint8_t day = rand() % TIMETABLE_NUMBER_DAYS, timeslot = rand() % TIMETABLE_SLOTS_PER_DAY;
 	// get all scheduled events in that timeslot
@@ -150,6 +150,9 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 				// if the generated neighbor has a better score, then it's an admissible candidate
 				if (new_score < current_score) {
 					neighbors.push(new_tt);
+
+					// if is a first-best search, then return immediately
+					if (first_best) return neighbors;
 				} else {
 					delete new_tt;
 				}
@@ -162,8 +165,8 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 	return neighbors;
 }
 
-Timetable* get_best_neighbor(Timetable* tt, Instance& inst) {
-	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
+Timetable* _get_best_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst);
 
 	if (all_neighbors.empty()) {
 		return nullptr;
@@ -181,8 +184,8 @@ Timetable* get_best_neighbor(Timetable* tt, Instance& inst) {
 	return best;
 }
 
-Timetable* get_random_neighbor(Timetable* tt, Instance& inst) {
-	priority_queue_timetable_ptr all_neighbors = get_neighbors(tt, inst);
+Timetable* _get_random_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst);
 
 	if (all_neighbors.empty()) {
 		return nullptr;
@@ -209,6 +212,19 @@ Timetable* get_random_neighbor(Timetable* tt, Instance& inst) {
 	return desired;
 }
 
+Timetable* _get_first_best_neighbor(Timetable* tt, Instance& inst) {
+	priority_queue_timetable_ptr all_neighbors = _get_neighbors(tt, inst, true);
+
+	if (all_neighbors.empty()) {
+		return nullptr;
+	}
+
+	Timetable* first = all_neighbors.top(); // top of the queue
+	all_neighbors.pop();
+
+	return first;
+}
+
 Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
 	// generate initial solution
 	Timetable* tt = generate_initial_state(inst);
@@ -221,7 +237,7 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
 	const int max_attempts = 5;
 	// while not stucked in a local maxima or the optimal solution is not found
 	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
-		if ((new_tt = get_best_neighbor(tt, inst)) == nullptr) {
+		if ((new_tt = _get_best_neighbor(tt, inst)) == nullptr) {
 			max_successive_attempts++;
 		} else {
 			max_successive_attempts = 0;
@@ -247,7 +263,32 @@ Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initia
 	const int max_attempts = 5;
 	// while not stucked in a local maxima or the optimal solution is not found
 	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
-		if ((new_tt = get_random_neighbor(tt, inst)) == nullptr) {
+		if ((new_tt = _get_random_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
+		}
+	}
+
+	return tt;
+}
+
+Timetable* first_choice_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
+	// generate initial solution
+	Timetable* tt = generate_initial_state(inst);
+
+	// calculate the score for this random solution
+	cout << tt->calculateScore(inst) << endl;
+
+	Timetable* new_tt;
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
+	// while not stucked in a local maxima or the optimal solution is not found
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = _get_first_best_neighbor(tt, inst)) == nullptr) {
 			max_successive_attempts++;
 		} else {
 			max_successive_attempts = 0;
