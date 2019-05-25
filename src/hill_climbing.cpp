@@ -52,7 +52,8 @@ Timetable* get_greedy_initial_state(Instance& inst) {
 		bool is_event_scheduled = false;
 
 		// go through all existing rooms
-		for (Room& r : inst.rooms) {
+		for (int i = 0; i < inst.rooms.size() && !is_event_scheduled; i++) {
+			Room& r = inst.rooms.at(i);
 
 			// check if room has the required capacity
 			if (r.getSize() < ev.getNumberOfAtendees())
@@ -68,23 +69,23 @@ Timetable* get_greedy_initial_state(Instance& inst) {
 			}
 
 			if (room_has_features) {
-				// Found the room to host the event
+				// Found a candidate room to host the event
 				// Try to pick a timetable spot randomly for the
 				// event
 				int attempts = 0;
 				bool is_added = false;
 				const int maximum_attempts = 10;
+
 				do {
 					int day =
 						rand() % TIMETABLE_NUMBER_DAYS,
 					    timeslot = rand() %
 						       TIMETABLE_SLOTS_PER_DAY;
-					is_added =
-					    tt->timetable[day][timeslot]
-						.addScheduledEvent(&r, &ev);
+
+					is_added = tt->timetable[day][timeslot].addScheduledEvent(&r, &ev);
+
 					attempts++;
-				} while (!is_added &&
-					 attempts < maximum_attempts);
+				} while (!is_added && attempts < maximum_attempts);
 
 				/**
 				 * If failed to randomly add the scheduled
