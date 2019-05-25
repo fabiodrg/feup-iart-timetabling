@@ -1,23 +1,36 @@
 #include "genetic.h"
 #include "hill_climbing.h"
+#include <unordered_map>
 
 Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_generations) {
 
-	vector<Timetable*> population;
+	map<int, Timetable*> population;
 	for (uint32_t i = 0; i < initial_pop_n; i++) {
-		population.push_back(get_greedy_initial_state(*inst));
+		Timetable* t = get_greedy_initial_state(*inst);
+		population[t->calculateScore()] = t;
 	}
 
 	for (uint32_t gen = 0; gen < max_generations; gen++) {
 	}
-	vector<Timetable*> s = selection(inst, population);
+	vector<Timetable*> s = selection(inst, population, 10, 5);
 
-	Timetable* child = crossover(inst, s[0], s[1]);
-	cout << "Father events: " << s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
-	cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
-	cout << "Child events: " << child->getNumberOfEvents() << "	score: " << child->calculateScore() << endl;
+	Timetable* child;
+	for (unsigned short i = 0; i < max_generations; i++) {
+		try {
+			child = crossover(inst, s[0], s[1]);
+			int cScore = child->calculateScore();
+			cout << i << "th generation:" << endl;
+			cout << "Father events: " << s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
+			cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
+			cout << "Child events: " << child->getNumberOfEvents() << "	score: " << cScore << endl;
+			population[cScore] = child;
+		} catch (exception e) {
+			cout << e.what();
+		}
+		s = selection(inst, population, 0, 20);
+	}
 
-	return selection(inst, population).at(0);
+	return selection(inst, population, 0, 1).at(0);
 }
 
 /**
@@ -82,6 +95,8 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 
 	// go through all remainig events and try to timetable them
 	for (Event* ev : remainingEvents) {
+		if (ev == NULL)
+			continue;
 		bool is_event_scheduled = false;
 
 		// go through all existing rooms
@@ -118,33 +133,28 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 
 					attempts++;
 				} while (!is_event_scheduled && attempts < maximum_attempts);
+				if (attempts >= maximum_attempts)
+					throw runtime_error("child is deffective :(");
 			}
 		}
 	}
 	return child;
 }
 
-vector<Timetable*> selection(Instance* inst, std::vector<Timetable*> pop) {
+vector<Timetable*> selection(Instance* inst, std::map<int, Timetable*> pop, int rf, int rc) {
 	vector<Timetable*> fathers;
-	int minScore;
-	int minScore1 = pop.at(0)->calculateScore();
-	int minScore2 = pop.at(1)->calculateScore();
-	if (minScore1 < minScore2) {
-		fathers.push_back(pop.at(0));
-		fathers.push_back(pop.at(1));
-		minScore = minScore1;
-	} else {
-		fathers.push_back(pop.at(1));
-		fathers.push_back(pop.at(0));
-		minScore = minScore2;
+
+	int r = rand() % rc + rf;
+	map<int, Timetable*>::iterator b = pop.begin();
+
+	for (unsigned short i = 0; i < r; i++) {
+		b++;
 	}
-	for (Timetable* ind : pop) {
-		int score = ind->calculateScore();
-		if (minScore > score) {
-			minScore = score;
-			fathers.insert(fathers.begin() + 1, fathers.at(0));
-			fathers.insert(fathers.begin(), ind);
-		}
+
+	for (unsigned short i = 0; i < 2; i++) {
+		//get two fathers
+		fathers.push_back(b->second);
+		b++;
 	}
 	return fathers;
 }

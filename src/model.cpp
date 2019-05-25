@@ -241,7 +241,7 @@ unsigned int Timetable::getNumberOfEvents() {
 	unsigned int sum = 0;
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
-			//sum += this->timetable[i][j].getScheduledEvents().size();
+			sum += this->timetable[i][j].getScheduledEvents().size();
 		}
 	}
 
