@@ -118,7 +118,6 @@ priority_queue_timetable_ptr get_neighbors(Timetable* tt, Instance& inst) {
 
 	// if no events were found give up
 	if (scheduled_events_it_A == scheduled_events_A.end()) {
-		cout << "ERROR";
 		return neighbors;
 	}
 
@@ -218,15 +217,21 @@ Timetable* steepest_ascent_hill_climbing(Instance& inst, Timetable* (*generate_i
 	cout << tt->calculateScore(inst) << endl;
 
 	Timetable* new_tt;
-
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
 	// while not stucked in a local maxima or the optimal solution is not found
-	while ((new_tt = get_best_neighbor(tt, inst)) != nullptr && tt->myScore != 0) {
-		cout << "Found enhanced solution: " << new_tt->myScore << endl;
-		delete (tt);
-		tt = new_tt;
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = get_best_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
+		}
 	}
 
-	return new_tt;
+	return tt;
 }
 
 Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initial_state)(Instance&)) {
@@ -238,12 +243,19 @@ Timetable* stochastic_hill_climbing(Instance& inst, Timetable* (*generate_initia
 
 	Timetable* new_tt;
 
+	int max_successive_attempts = 0;
+	const int max_attempts = 5;
 	// while not stucked in a local maxima or the optimal solution is not found
-	while ((new_tt = get_random_neighbor(tt, inst)) != nullptr && tt->myScore != 0) {
-		cout << "Found enhanced solution: " << new_tt->myScore << endl;
-		delete (tt);
-		tt = new_tt;
+	while (tt->myScore != 0 && max_successive_attempts < max_attempts) {
+		if ((new_tt = get_random_neighbor(tt, inst)) == nullptr) {
+			max_successive_attempts++;
+		} else {
+			max_successive_attempts = 0;
+			cout << "Found enhanced solution: " << new_tt->myScore << endl;
+			delete (tt);
+			tt = new_tt;
+		}
 	}
 
-	return new_tt;
+	return tt;
 }
