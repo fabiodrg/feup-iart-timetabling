@@ -1,10 +1,23 @@
 #include "main.h"
 #include "genetic.h"
 #include "hill_climbing.h"
+#include "menu.h"
 #include <fstream>
 #include <iostream>
 
 using namespace std;
+
+const void runGenetic(Instance* a) {
+	Timetable* t2 = goGenetic(a, 100, 5000);
+	cout << "Genetic Score: " << t2->calculateScore() << endl;
+	delete (t2);
+}
+
+const void runHillClimbing(Instance* a) {
+	Timetable* tt = first_choice_hill_climbing(*a, get_greedy_initial_state);
+	cout << *tt;
+	delete (tt);
+}
 
 int main(int argc, char** argv) {
 	srand(time(NULL));
@@ -28,19 +41,15 @@ int main(int argc, char** argv) {
 	Instance a = importFile(inputFile);
 	inputFile.close();
 
-	// testing
+	Menu menu("Timetabling", NULL, NULL, 0);
 
+	menu.addOption("Genetic", 'g', runGenetic, &a);
+	menu.addOption("Hill Climbing", 'h', runHillClimbing, &a);
 
-	// //Timetable* tt = stochastic_hill_climbing(a, get_greedy_initial_state);
-
-	// Timetable* t2 = goGenetic(&a, 100, 5000);
-
-	// cout << "Genetic Score: " << t2->calculateScore() << endl;
-
-	// delete (t2);
-	// Timetable* tt = first_choice_hill_climbing(a, get_greedy_initial_state);
-	// cout << *tt;
-	// delete (tt);
+	while (1) {
+		menu.print();
+		menu.waitAndRun();
+	}
 }
 
 Instance importFile(fstream& f) {
