@@ -13,7 +13,7 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 
 	for (uint32_t gen = 0; gen < max_generations; gen++) {
 	}
-	vector<Timetable*> s = selection(inst, population, 10, 5);
+	vector<Timetable*> s = selection(population, 10, 5);
 
 	Timetable* child;
 	for (unsigned short i = 0; i < max_generations; i++) {
@@ -25,13 +25,13 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 			cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
 			cout << "Child events: " << child->getNumberOfEvents() << "	score: " << cScore << endl;
 			population[cScore] = child;
-		} catch (exception e) {
-			cout << e.what();
+		} catch (exception* e) {
+			cout << e->what();
 		}
-		s = selection(inst, population, 0, 20);
+		s = selection(population, 0, 20);
 	}
 
-	return selection(inst, population, 0, 1).at(0);
+	return selection(population, 0, 1).at(0);
 }
 
 /**
@@ -142,7 +142,7 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 	return child;
 }
 
-vector<Timetable*> selection(Instance* inst, std::map<int, Timetable*> pop, int rf, int rc) {
+vector<Timetable*> selection(std::map<int, Timetable*> pop, int rf, int rc) {
 	vector<Timetable*> fathers;
 
 	int r = rand() % rc + rf;
