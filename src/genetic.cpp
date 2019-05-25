@@ -1,7 +1,6 @@
 #include "genetic.h"
 #include "hill_climbing.h"
 
-
 Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_generations) {
 
 	vector<Timetable*> population;
@@ -13,11 +12,10 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 	}
 	vector<Timetable*> s = selection(inst, population);
 
-
 	Timetable* child = crossover(inst, s[0], s[1]);
-	cout << "Father events: "<< s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
-	cout << "Mother events: "<< s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
-	cout << "Child events: "<< child->getNumberOfEvents() << "	score: " << child->calculateScore() << endl;
+	cout << "Father events: " << s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
+	cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
+	cout << "Child events: " << child->getNumberOfEvents() << "	score: " << child->calculateScore() << endl;
 
 	return selection(inst, population).at(0);
 }
@@ -62,84 +60,65 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 				repeatedEvents.push_back(p.second);
 			}
 		}
+	}
 
-		// find remaining events 
-		set<Event*> remainingEvents;
-		for (uint8_t point = 0; point < crossPoint; point++) {
-			for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
-				remainingEvents.insert(p.second);
+	// find remaining events
+	set<Event*> remainingEvents;
+	for (uint8_t point = 0; point < crossPoint; point++) {
+		for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+			remainingEvents.insert(p.second);
+		}
+	}
+
+	for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
+		for (pair<Room*, Event*> p : mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+			set<Event*>::iterator it = remainingEvents.find(p.second);
+			if (it != remainingEvents.end()) {
+				// event found in mother. remove.
+				remainingEvents.erase(it);
 			}
 		}
+	}
 
-		for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
-			for (pair<Room*, Event*> p : mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
-				set<Event*>::iterator it = remainingEvents.find(p.second);
-				if(it != remainingEvents.end()){
-					// event found in mother. remove.
-					remainingEvents.erase(it);
-				}
-			}
-		}
+	// go through all remainig events and try to timetable them
+	for (Event* ev : remainingEvents) {
+		bool is_event_scheduled = false;
 
-		// go through all remainig events and try to timetable them
-		for (Event* ev : remainingEvents) {
-			bool is_event_scheduled = false;
+		// go through all existing rooms
+		for (size_t i = 0; i < inst->rooms.size() && !is_event_scheduled; i++) {
+			Room& r = inst->rooms.at(i);
 
-			// go through all existing rooms
-			for (Room& r : inst->rooms) {
+			// check if room has the required capacity
+			if (r.getSize() < ev->getNumberOfAtendees())
+				continue;
 
-				// check if room has the required capacity
-				if (r.getSize() < ev->getNumberOfAtendees())
-					continue;
-
-				// check if room has all required features
-				bool room_has_features = true;
-				for (Feature f : ev->getRequiredFeatures()) {
-					if (!r.hasFeature(f)) {
-						room_has_features = false;
-						break;
-					}
-				}
-
-				if (room_has_features) {
-					// Found the room to host the event
-					// Try to pick a timetable spot randomly for the
-					// event
-					int attempts = 0;
-					bool is_added = false;
-					const int maximum_attempts = 10;
-					do {
-						int day =
-							rand() % TIMETABLE_NUMBER_DAYS,
-						    timeslot = rand() %
-							       TIMETABLE_SLOTS_PER_DAY;
-						is_added =
-						    child->timetable[day][timeslot]
-							.addScheduledEvent(&r, ev);
-						attempts++;
-					} while (!is_added &&
-						 attempts < maximum_attempts);
-
-					/**
-				 * If failed to randomly add the scheduled
-				 * event, try brute force
-				 */
-					if (!is_added) {
-						if (!strict_schedule_event(child, ev, &r))
-							continue; // failed, try next room
-						else
-							is_event_scheduled = true; // success
-					} else {
-						is_event_scheduled = true; // success
-					}
+			// check if room has all required features
+			bool room_has_features = true;
+			for (Feature f : ev->getRequiredFeatures()) {
+				if (!r.hasFeature(f)) {
+					room_has_features = false;
+					break;
 				}
 			}
 
-			/*if (!is_event_scheduled) {
-				cout << "Failed to schedule event: \n"
-				     << ev << endl;
-				child.unallocated_events.push_back(ev);
-			}*/
+			if (room_has_features) {
+				// Found a candidate room to host the event
+				// Try to pick a timetable spot randomly for the
+				// event
+				int attempts = 0;
+				const int maximum_attempts = 10;
+
+				do {
+					int day =
+						rand() % TIMETABLE_NUMBER_DAYS,
+					    timeslot = rand() %
+						       TIMETABLE_SLOTS_PER_DAY;
+
+					is_event_scheduled = child->timetable[day][timeslot].addScheduledEvent(&r, ev);
+
+					attempts++;
+				} while (!is_event_scheduled && attempts < maximum_attempts);
+			}
 		}
 	}
 	return child;
