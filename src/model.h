@@ -10,9 +10,12 @@
 #define TIMETABLE_NUMBER_DAYS 5
 #define TIMETABLE_SLOTS_PER_DAY 9
 
-#define PENALTY_STUDENT_OVERLAPPED_EVENTS 100
-#define PENALTY_ROOM_OUT_OF_SPACE 200
-#define PENALTY_ROOM_MISSING_FEATURE 200
+#define PENALTY_STUDENT_OVERLAPPED_EVENTS 		100
+#define PENALTY_ROOM_OUT_OF_SPACE 				200
+#define PENALTY_ROOM_MISSING_FEATURE 			200
+#define PENALTY_LAST_TIMESLOT					20
+#define PENALTY_MORE_THAN_TWO_CLASSES_CONSEC	30
+#define PENALTY_SINGLE_CLASS_PER_DAY			20
 
 using namespace std;
 
@@ -423,15 +426,6 @@ class TimeSlot {
 	vector<Event*> getAllocatedEvents() const;
 
 	/**
-	 * @brief For a given event in this timeslot, return the room hosting the event
-	 * 
-	 * @param ev 
-	 * @return Room* The room hosting the event
-	 * @return NULL Event was not found in this timeslot
-	 */
-	Room* getAllocatedEventRoom(Event* ev) const;
-
-	/**
 	 * @brief Adds an unassigned room to this timeslot
 	 * 
 	 * @param r The room to be added
@@ -449,6 +443,8 @@ class TimeSlot {
 	 * @return false 
 	 */
 	bool addRoom(Room* r, Event* ev);
+
+	Room* getAllocatedEventRoom(Event* ev) const;
 };
 
 class Timetable {
