@@ -218,6 +218,15 @@ vector<Event*> TimeSlot::getAllocatedEvents() const {
 	return allocated_events;
 }
 
+Room* TimeSlot::getAllocatedEventRoom(Event* ev) const {
+	for (pair<Room*, Event*> p : this->scheduled_events) {
+		if (p.second == ev)
+			return p.first;
+	}
+
+	return nullptr;
+}
+
 bool TimeSlot::addRoom(Room* r) {
 	return this->scheduled_events.insert(pair<Room*, Event*>(r, nullptr)).second;
 }

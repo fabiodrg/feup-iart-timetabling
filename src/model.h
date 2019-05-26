@@ -443,6 +443,8 @@ class TimeSlot {
 	 * @return false 
 	 */
 	bool addRoom(Room* r, Event* ev);
+
+	Room* getAllocatedEventRoom(Event* ev) const;
 };
 
 class Timetable {
