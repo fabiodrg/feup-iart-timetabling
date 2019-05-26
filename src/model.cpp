@@ -250,7 +250,12 @@ unsigned int Timetable::getNumberOfEvents() {
 	unsigned int sum = 0;
 	for (int i = 0; i < TIMETABLE_NUMBER_DAYS; i++) {
 		for (int j = 0; j < TIMETABLE_SLOTS_PER_DAY; j++) {
-			sum += this->timetable[i][j].getScheduledEvents().size();
+			map<Room*, Event*, RoomPtrCmp> scheduled_events = this->timetable[i][j].getScheduledEvents();
+			for (auto scheduled_events_it = scheduled_events.cbegin(); scheduled_events_it != scheduled_events.cend(); scheduled_events_it++) {
+				if (scheduled_events_it->second != nullptr) {
+					sum++;
+				}
+			}
 		}
 	}
 

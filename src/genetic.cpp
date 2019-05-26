@@ -24,6 +24,7 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 			cout << "Father events: " << s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
 			cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
 			cout << "Child events: " << child->getNumberOfEvents() << "	score: " << cScore << endl;
+			
 			if (cScore == 0) {
 				return child;
 			}
@@ -41,7 +42,7 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 			else
 				a = 5;
 		} catch (exception& e) {
-			cout << e.what() << endl;
+			//cout << e.what() << endl;
 		}
 		s = selection(population, 0, a);
 	}
@@ -60,46 +61,73 @@ Timetable* crossover(Instance* inst, Timetable* father, Timetable* mother) {
 
 	//return child;
 	uint8_t crossPoint = rand() % (TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY);
+	//uint8_t crossPoint = TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY;
+	int sum = 0, asum = 0;
 	// loop to add father to child
 	for (uint8_t point = 0; point < crossPoint; point++) {
-		//child.timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS] = father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS];
+		for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY].getScheduledEvents()) {
+			sum += child->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY].addScheduledEvent(p.first, p.second);
+			asum++;
+		}
 	}
 
+	//cout << "sum: " << sum << " asum: " << asum << " Events after copying father-left-side: " << child->getNumberOfEvents() << endl;
+
 	vector<Event*> repeatedEvents;
+	set<Event*> remainingEvents;
 	// Loop Mother Time Slots
+	sum = 0;
+	int count = 0;
+	int added = 0;
 	for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
-		TimeSlot timeSlotToAdd = mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS];
+		TimeSlot timeSlotToAdd = mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY];
 		// Loop Mother Events
 		for (pair<Room*, Event*> p : timeSlotToAdd.getScheduledEvents()) {
+			count++;
+			if (p.second != nullptr) {
+				sum++;
+			}
 			bool eventFound = false;
 			// Loop Child Time Slots
 			for (uint8_t point2 = 0; point2 < crossPoint; point2++) {
 				//child.timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS];
 				// Loop Child Events
-				for (pair<Room*, Event*> p2 : child->timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+				for (pair<Room*, Event*> p2 : child->timetable[point2 / TIMETABLE_SLOTS_PER_DAY][point2 % TIMETABLE_SLOTS_PER_DAY].getScheduledEvents()) {
 					if (p2.second == p.second) {
 						eventFound = true;
 					}
 				}
 			}
 			if (eventFound == false) {
-				child->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].addScheduledEvent(p.first, p.second);
+				bool success = child->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY].addScheduledEvent(p.first, p.second);
+				if (success) {
+					added++;
+				} else {
+					remainingEvents.insert(p.second);
+				}
+
 			} else {
 				repeatedEvents.push_back(p.second);
 			}
 		}
 	}
 
+	// cout << added << endl;
+	// cout << "Events in mother: " << mother->getNumberOfEvents() << endl;
+	// cout << "Events after copying mother-right-side: " << child->getNumberOfEvents() << endl;
+	// cout << "Repeated events: " << repeatedEvents.size() << endl;
+
 	// find remaining events
-	set<Event*> remainingEvents;
+
 	for (uint8_t point = 0; point < crossPoint; point++) {
-		for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+		for (pair<Room*, Event*> p : father->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY].getScheduledEvents()) {
 			remainingEvents.insert(p.second);
 		}
 	}
+	//cout << "Events remaining: " << remainingEvents.size() << endl;
 
 	for (uint8_t point = crossPoint; point < TIMETABLE_NUMBER_DAYS * TIMETABLE_SLOTS_PER_DAY; point++) {
-		for (pair<Room*, Event*> p : mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_NUMBER_DAYS].getScheduledEvents()) {
+		for (pair<Room*, Event*> p : mother->timetable[point / TIMETABLE_SLOTS_PER_DAY][point % TIMETABLE_SLOTS_PER_DAY].getScheduledEvents()) {
 			set<Event*>::iterator it = remainingEvents.find(p.second);
 			if (it != remainingEvents.end()) {
 				// event found in mother. remove.
