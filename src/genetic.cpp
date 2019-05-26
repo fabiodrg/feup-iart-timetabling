@@ -1,21 +1,21 @@
 #include "genetic.h"
-#include "hill_climbing.h"
-#include "model.h"
-#include <unordered_map>
 
 Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_generations) {
 
 	map<int, Timetable*> population;
+
+	// Initialize Initial Population
 	for (uint32_t i = 0; i < initial_pop_n; i++) {
 		Timetable* t = get_greedy_initial_state(*inst);
 		population[t->calculateScore()] = t;
 	}
 
-	for (uint32_t gen = 0; gen < max_generations; gen++) {
-	}
 	vector<Timetable*> s = selection(population, 10, 5);
 
 	Timetable* child;
+	int window_size = 20;
+	forward_list<int> tempWindow(window_size);
+	int a = 5;
 	for (unsigned short i = 0; i < max_generations; i++) {
 		try {
 			child = crossover(inst, s[0], s[1]);
@@ -24,11 +24,26 @@ Timetable* goGenetic(Instance* inst, uint32_t initial_pop_n, uint32_t max_genera
 			cout << "Father events: " << s[0]->getNumberOfEvents() << "	score: " << s[0]->calculateScore() << endl;
 			cout << "Mother events: " << s[1]->getNumberOfEvents() << "	score: " << s[1]->calculateScore() << endl;
 			cout << "Child events: " << child->getNumberOfEvents() << "	score: " << cScore << endl;
+			if (cScore == 0) {
+				return child;
+			}
 			population[cScore] = child;
-		} catch (exception* e) {
-			cout << e->what();
+			tempWindow.push_front(cScore);
+			int sum = 0;
+			int max = 0;
+			for (int value : tempWindow) {
+				sum += value;
+				max = value > max ? value : max;
+			}
+			int avg = sum / window_size;
+			if (max - avg > 1500)
+				a = 30;
+			else
+				a = 5;
+		} catch (exception& e) {
+			cout << e.what() << endl;
 		}
-		s = selection(population, 0, 20);
+		s = selection(population, 0, a);
 	}
 	return selection(population, 0, 1).at(0);
 }

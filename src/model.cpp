@@ -319,6 +319,14 @@ int Timetable::calculateScore() {
                  */
 			}
 		}
+
+		/**
+		 * There are no events in the last period of each day
+		 */
+
+		TimeSlot& slot = this->timetable[i][TIMETABLE_SLOTS_PER_DAY - 1];
+		int n = slot.getScheduledEvents().size();
+		score += n * PENALTY_LAST_TIMESLOT;
 	}
 
 	//cout << "Score summary" << endl;
