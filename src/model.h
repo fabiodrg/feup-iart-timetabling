@@ -426,15 +426,6 @@ class TimeSlot {
 	vector<Event*> getAllocatedEvents() const;
 
 	/**
-	 * @brief For a given event in this timeslot, return the room hosting the event
-	 * 
-	 * @param ev 
-	 * @return Room* The room hosting the event
-	 * @return NULL Event was not found in this timeslot
-	 */
-	Room* getAllocatedEventRoom(Event* ev) const;
-
-	/**
 	 * @brief Adds an unassigned room to this timeslot
 	 * 
 	 * @param r The room to be added
@@ -452,6 +443,8 @@ class TimeSlot {
 	 * @return false 
 	 */
 	bool addRoom(Room* r, Event* ev);
+
+	Room* getAllocatedEventRoom(Event* ev) const;
 };
 
 class Timetable {

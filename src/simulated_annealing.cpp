@@ -91,7 +91,7 @@ Timetable* simulated_annealing(Instance& inst, Timetable* (*generate_initial_sta
 				}
 			}
 
-			cout << "New score : " << next_score << endl;
+			cout << "\tNew score : " << next_score << endl;
 		}
 
 		// decrease the temperature
