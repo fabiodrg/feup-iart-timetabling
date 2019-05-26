@@ -9,8 +9,9 @@
 using namespace std;
 
 const void runGenetic(Instance* a) {
-	Timetable* t2 = goGenetic(a, 100, 5000);
+	Timetable* t2 = goGenetic(a, 100, 10000);
 	cout << "Genetic Score: " << t2->calculateScore() << endl;
+	cout << *t2;
 	delete (t2);
 }
 
@@ -27,7 +28,7 @@ const void runSimulatedAnnealing(Instance* a) {
 	cout << "Number of iterations: ";
 	cin >> N;
 	cin.ignore(1000, '\n');
-	annealing_info info = {5000, 50000, &cooling_schedule_A};
+	annealing_info info = {T0, N, &cooling_schedule_A};
 	Timetable* tt = simulated_annealing(*a, get_greedy_initial_state, info);
 	cout << *tt;
 	delete (tt);
