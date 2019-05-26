@@ -21,8 +21,15 @@ const void runHillClimbing(Instance* a) {
 }
 
 const void runSimulatedAnnealing(Instance* a) {
-	Timetable* tt = simulated_annealing(*a, get_greedy_initial_state, {20000, 100});
-	//cout << *tt;
+	double T0, N;
+	cout << "Initial temperature: ";
+	cin >> T0;
+	cout << "Number of iterations: ";
+	cin >> N;
+	cin.ignore(1000, '\n');
+	annealing_info info = {5000, 50000, &cooling_schedule_A};
+	Timetable* tt = simulated_annealing(*a, get_greedy_initial_state, info);
+	cout << *tt;
 	delete (tt);
 }
 
